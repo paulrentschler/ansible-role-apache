@@ -1,0 +1,15 @@
+#
+# {{ ansible_managed }}
+#
+#
+# This is the Apache server configuration file providing CoSign support.
+# This allows for the use of Penn State's WebAccess single sign-on solution.
+#
+LoadModule cosign_module       {{ apache_cosign_module }}
+
+#
+# Configuration to use CoSign can be found in the individual virtual hosts
+# that need it. Each virtual host configuration can be found in the
+# /etc/apache2/sites-available directory and the active virtual hosts are
+# symlinked to the /etc/apache2/sites-enabled directory.
+#

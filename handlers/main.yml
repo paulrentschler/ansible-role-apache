@@ -1,2 +1,18 @@
 ---
-# handlers file for paulrentschler.apache
+# Handlers for Apache web server
+
+
+- name: restart Apache
+  ansible.builtin.service:
+    name: apache2
+    state: restarted
+    enabled: true
+  become: yes
+
+- name: reload Apache
+  ansible.builtin.service:
+    name: apache2
+    state: reloaded
+    enabled: true
+  become: yes
+

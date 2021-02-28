@@ -1,0 +1,34 @@
+#
+# {{ ansible_managed }}
+#
+# Rotates the Apache log files keeping a year's worth of logs
+#
+
+/var/log/apache2/default/*.log {
+# rotate weekly and keep 53 weeks (just over a year) worth of logs
+    weekly
+    rotate 53
+
+# compress the rotated log files, on the next run (not when rotated)
+    compress
+    delaycompress
+
+# rotated files should have a date extension added
+    dateext
+
+# do not rotate empty or missing log files
+    notifempty
+    missingok
+
+# rotate files into an archive directory
+    olddir archive
+
+# create new log files owned by root:{{ devops_group|default('adm') }} with only root having write permissions
+    create 0640 root {{ devops_group|default('adm') }}
+
+# run the pre and post rotation scripts against all the matched files at once
+    sharedscripts
+    postrotate
+        /etc/init.d/apache2 reload > /dev/null
+    endscript
+}

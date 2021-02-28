@@ -1,0 +1,115 @@
+---
+# Enable CoSign (WebAccess) support for Apache
+
+
+##
+# Background:
+#
+# CoSign (http://weblogin.org/) is an open source web-based single sign-on
+# solution developed by the University of Michigan and implemented at
+# Penn State under the name WebAccess
+# (http://ait.its.psu.edu/services/identity-access-management/identity/webaccess/apache3.html).
+#
+# The CoSign tarball is here: http://weblogin.org/download.shtml
+##
+
+
+##
+# Add APX support to Apache
+##
+- name: "cosign | install the build essentials"
+  ansible.builtin.apt:
+    name: build-essential
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: "cosign | add APX support to Apache"
+  ansible.builtin.apt:
+    name: apache2-threaded-dev
+    state: present
+    update_cache: yes
+  register: _apx_support_status
+  become: yes
+  changed_when: "_apx_support_status.changed and not '0 upgraded, 0 newly installed' in _apx_support_status.stdout"
+
+
+
+##
+# Download and installation
+##
+- name: "cosign | create the src directory"
+  ansible.builtin.file:
+    path: "/usr/local/src"
+    state: directory
+    owner: "{{ devops_user|default(ansible_user) }}"
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0775
+  become: yes
+
+- name: "cosign | download the tarball"
+  ansible.builtin.get_url:
+    url: "{{ cosign_path }}{{ cosign_tarball }}"
+    dest: /usr/local/src/
+    mode: 0440
+
+- name: "cosign | extract the tarball"
+  ansible.builtin.unarchive:
+    src: "/usr/local/src/{{ cosign_tarball }}"
+    dest: "/usr/local/src/"
+    remote_src: yes
+
+- name: "cosign | patch the CoSign code for Apache 2.4"
+  ansible.builtin.replace:
+    dest: /usr/local/src/{{ cosign_name }}/filters/apache2/mod_cosign.c
+    regexp: 'remote_ip'
+    replace: 'client_ip'
+  # when: apache_version is defined and apache_version.stdout.find("Apache/2.4") != -1
+
+- name: "cosign | configure the package"
+  ansible.builtin.shell:
+    cmd: "./configure --enable-apache2={{ apache_apx_path }}"
+    chdir: "cd /usr/local/src/{{ cosign_name }}"
+    creates: "/usr/local/src/{{ cosign_name }}/Makefile"
+
+- name: "cosign | make the module"
+  community.general.make:
+    chdir: "/usr/local/src/{{ cosign_name }}"
+  # shell: "cd /usr/local/src/{{ cosign_name }};make creates=/usr/local/src/{{ cosign_name }}/filters/apache2/mod_cosign.lo"
+
+- name: "cosign | install the module"
+  community.general.make:
+    chdir: "/usr/local/src/{{ cosign_name }}"
+    target: "install"
+  # shell: "cd /usr/local/src/{{ cosign_name }};make install creates={{ apache_cosign_module }}"
+  become: yes
+
+- name: "cosign | create the filter directory"
+  ansible.builtin.file:
+    path: /var/cosign/filter
+    state: directory
+    owner: "{{ apache_user }}"
+    group: "{{ devops_group|default('adm') }}"
+  become: yes
+
+
+
+##
+# Configure and activate the module
+##
+- name: "cosign | add the CoSign configuration"
+  ansible.builtin.template:
+    src: cosign.conf.j2
+    dest: "/etc/apache2/mods-available/cosign.load"
+    owner: root
+    group: root
+    mode: 0644
+  become: yes
+
+- name: "cosign | activate the CoSign module"
+  community.general.apache2_module:
+    name: cosign
+    state: present
+  become: yes
+  notify: restart Apache
+

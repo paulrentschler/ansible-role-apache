@@ -1,0 +1,79 @@
+#
+# {{ ansible_managed }}
+#
+#
+# This is the Apache server configuration file providing SSL support.
+# It contains the configuration directives to instruct the server how to
+# serve pages over an https connection. For detailing information about these
+# directives see http://httpd.apache.org/docs/2.4/mod/mod_ssl.html
+#
+
+
+<IfModule mod_ssl.c>
+    #
+    # Ensure the server is listening on port 443 (https)
+    #
+    Listen 443
+
+
+    ##
+    ##  SSL Global Context
+    ##
+    ##  All SSL configuration in this context applies both to
+    ##  the main server and all SSL-enabled virtual hosts.
+    ##
+
+
+    #
+    # Pseudo Random Number Generator (PRNG)
+    # Configure one or more sources to seed the PRNG of the SSL library.
+    #
+    #SSLRandomSeed startup builtin
+    SSLRandomSeed startup file:/dev/urandom 512
+    SSLRandomSeed connect builtin
+    SSLRandomSeed connect file:/dev/urandom 512
+
+    #
+    # Some MIME-types for downloading Certificates and CRLs
+    #
+    AddType application/x-x509-ca-cert .crt
+    AddType application/x-pkcs7-crl    .crl
+
+    #
+    # Configure the pass phrase gathering process
+    #
+    SSLPassPhraseDialog  {{ apache_passphrasedialog }}
+
+    #
+    # Configure the SSL Session Cache: First the mechanism
+    # to use and second the expiring timeout (in seconds).
+    #
+    SSLSessionCache         shmcb:{{ apache_sslcache }}
+    SSLSessionCacheTimeout  300
+
+    #
+    # Prevent SSLv2 and SSLv3 usage. Disabling SSLv3 will likely break IE 6.
+    #
+    #SSLProtocol all -SSLv2 -SSLv3
+    SSLProtocol +TLSv1.2
+
+    #
+    # SSL Cipher Suite
+    # First support Perfect Forward Secrecy ciphers, then strong ciphers.
+    #
+    SSLHonorCipherOrder on
+    SSLCipherSuite ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES128-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA256
+
+    #
+    # Explicitly disable insecure renegotiation with clients which do not
+    # yet support the secure renegotiation protocol.
+    #
+    SSLInsecureRenegotiation Off
+
+    #
+    # Forbid non-SNI clients to access name based virtual hosts
+    #
+    #SSLStrictSNIVHostCheck On
+
+</IfModule>
+

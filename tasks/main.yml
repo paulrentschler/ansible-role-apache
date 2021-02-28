@@ -1,2 +1,39 @@
 ---
-# tasks file for paulrentschler.apache
+# Install and configure Apache web server
+
+
+- name: install Apache
+  ansible.builtin.apt:
+    name: apache2
+    state: present
+  become: yes
+
+
+- name: configure Apache
+  include_tasks: configure.yml
+
+
+##
+# Configure optional modules
+##
+
+- name: SSL support
+  include_tasks: ssl.yml
+  notify: restart Apache
+  when: "enable_ssl|default('yes')|bool"
+
+- name: CoSign support
+  include_tasks: cosign.yml
+  notify: restart Apache
+  when: "enable_ssl|default('yes')|bool and enable_cosign|default('no')|bool"
+
+- name: AzureSSO support
+  include_tasks: azuresso.yml
+  notify: restart Apache
+  when: "enable_ssl|default('yes')|bool and enable_azuresso|default('no')|bool"
+
+- name: WSGI support
+  include_tasks: wsgi.yml
+  notify: restart Apache
+  when: "enable_wsgi|default('no')|bool"
+

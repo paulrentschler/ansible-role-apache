@@ -1,2 +1,31 @@
 ---
-# defaults file for paulrentschler.apache
+# defaults for Apache related variables
+
+
+apache_user: "www-data"
+apache_group: "www-data"
+apache_admin_email: ""
+
+apache_pidfile: "${APACHE_PID_FILE}"
+apache_magicfile: "/etc/apache2/magic"
+# apache_daemon: "apache2"
+# apache_conf: "apache2.conf"
+apache_sslcache: "${APACHE_RUN_DIR}/ssl_scache(512000)"
+apache_passphrasedialog: "exec:/usr/share/apache2/ask-for-passphrase"
+apache_sslmutex: "file:${APACHE_RUN_DIR}/ssl_mutex"
+apache_ssl_path: "/etc/apache2/ssl"
+apache_ssl_privatekeys: "/etc/apache2/ssl"
+apache_apx_path: "/usr/bin/apxs2"
+
+
+
+##
+# CoSign values
+##
+
+apache_cosign_path: https://sourceforge.net/projects/cosign/files/cosign/cosign-3.2.0/
+apache_cosign_tarball: cosign-3.2.0.tar.gz
+apache_cosign_name: cosign-3.2.0
+apache_cosign_module: "/usr/lib/apache2/modules/mod_cosign.so"
+
+
