@@ -315,8 +315,6 @@
     - mime_magic
     - rewrite
     - speling
-    - proxy
-    - proxy_http
   become: yes
   notify: restart Apache
 

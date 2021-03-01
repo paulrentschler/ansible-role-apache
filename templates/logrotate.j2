@@ -4,7 +4,7 @@
 # Rotates the Apache log files keeping a year's worth of logs
 #
 
-/var/log/apache2/default/*.log {
+/var/log/apache2/{{ logs_path|default('default') }}/*.log {
 # rotate weekly and keep 53 weeks (just over a year) worth of logs
     weekly
     rotate 53

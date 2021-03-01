@@ -1,0 +1,226 @@
+---
+# Setup the virtual hosts
+
+
+##
+# DOCUMENT ROOT
+##
+
+- name: "docroot | create the directory structure"
+  ansible.builtin.file:
+    path: "/home/httpd/{{ item.domain }}/{{ item.hostname }}"
+    state: directory
+    recurse: yes
+    owner: "{{ devops_user|default(ansible_user) }}"
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0775
+  become: yes
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: "item.docroot|default('yes')|bool"
+
+- name: "docroot | create the document root"
+  ansible.builtin.file:
+    path: "/home/httpd/{{ item.domain }}/{{ item.hostname }}/html"
+    state: directory
+    owner: "{{ apache_user }}"
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0775
+  become: yes
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: "item.docroot|default('yes')|bool"
+
+
+
+##
+# LOGS
+##
+
+- name: "logs | create the log directory"
+  ansible.builtin.file:
+    path: "/var/log/apache2/{{ item.domain }}/{{ item.hostname }}/archive"
+    state: directory
+    recurse: yes
+    owner: root
+    group: "{{ devops_group|default('adm')"
+    mode: 0750
+  become: yes
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+
+- name: "logs | configure log file rotation"
+  ansible.builtin.template:
+    src: logrotate.j2
+    dest: "/etc/logrotate.d/apache2-{{ item.hostname }}.{{ item.domain }}"
+    owner: root
+    group: root
+    mode: 0644
+  vars:
+    logs_path: "{{ item.domain }}/{{ item.hostname }}"
+  become: yes
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+
+
+
+##
+# REWRITES
+##
+
+- name: "rewrites | create the directory structure"
+  ansible.builtin.file:
+    path: "/etc/apache2/rewrites/{{ item.hostname }}.{{ vhost_domain }}{% if item.use_ssl %}-ssl{% endif %}/exclusions"
+    state: directory
+    owner: root
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0775
+  become: yes
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+
+
+
+##
+# APPS
+##
+
+- name: "apps | create the directory structure"
+  ansible.builtin.file:
+    path: "/etc/apache2/apps/{{ item.hostname }}.{{ vhost_domain }}{% if item.use_ssl %}-ssl{% endif %}"
+    state: directory
+    owner: root
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0775
+  become: yes
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+
+
+
+##
+# SSL
+##
+
+### TODO: intermediate certs
+
+- name: "ssl | upload the private key"
+  ansible.builtin.copy:
+    src: "{{ item.ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.key"
+    dest: "{{ apache_ssl_privatekeys }}/"
+    owner: root
+    group: root
+    mode: 0400
+  become: yes
+  notify: restart Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  tags:
+    - update_certs
+
+- name: "ssl | upload the certificate"
+  ansible.builtin.copy:
+    src: "{{ item.ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.crt"
+    dest: "{{ apache_ssl_path }}/"
+    owner: root
+    group: root
+    mode: 0444
+  become: yes
+  notify: restart Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  tags:
+    - update_certs
+
+### TODO: handle intermediate cert hashes/aliases
+
+
+
+
+##
+# VIRTUAL HOST
+##
+
+- name: "vhost | create the virtual host conf file"
+  ansible.builtin.template:
+    src: "{{ item.template|default('virtualhost{% if item.use_ssl %}-ssl{% endif %}.j2') }}"
+    dest: "/etc/apache2/sites-available/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+    owner: root
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0664
+  become: yes
+  notify: reload Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+
+- name: "vhost | enable the virtual host"
+  ansible.builtin.shell:
+    cmd: "a2ensite {{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+    chdir: "/etc/apache2/sites-available"
+    creates: "/etc/apache2/sites-enabled/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  become: yes
+  notify: reload Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: "item.enable|default('yes')|bool"
+
+
+
+##
+# PROXYING
+##
+
+- name: "proxy | enable proxy module"
+  community.general.apache2_module:
+    name: proxy
+    state: present
+  become: yes
+  notify: restart Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: "item.proxy_origins|default([])|length == 1"
+
+- name: "proxy | enable proxy_http module"
+  community.general.apache2_module:
+    name: proxy_http
+    state: present
+  become: yes
+  notify: restart Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: "item.proxy_origins|default([])|length == 1"
+
+- name: "proxy | enable proxy_balancer module"
+  community.general.apache2_module:
+    name: proxy_balancer
+    state: present
+  become: yes
+  notify: restart Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: "item.proxy_origins|default([])|length > 1"
+
+- name: "proxy | enable lbmethod_byrequests module"
+  community.general.apache2_module:
+    name: lbmethod_byrequests
+    state: present
+  become: yes
+  notify: restart Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: "item.proxy_origins|default([])|length > 1"
+

@@ -1,0 +1,175 @@
+#
+# {{ ansible_managed }}
+#
+
+
+<VirtualHost {{ item.ip_address }}:{% if item.use_ssl %}443{% else %}80{% endif %}>
+
+{% if item.hostname == "www" %}
+    ServerName {{ item.domain }}
+    ServerAlias {{ item.hostname }}.{{ item.domain }}
+{% else %}
+    ServerName {{ item.hostname }}.{{ item.domain }}
+{% endif %}
+    UseCanonicalName   On
+
+{% if item.docroot|default('yes')|bool %}
+    DocumentRoot "/home/httpd/{{ item.domain }}/{{ item.hostname }}/html"
+{% endif %}
+
+    <IfModule mod_php.c>
+        <IfModule mod_dir.c>
+            DirectoryIndex index.php index.html index.html.var
+        </IfModule>
+    </IfModule>
+
+
+{% if item.use_ssl|default('no')|bool and item.use_cosign|default('no')|bool %}
+    ###
+    # Configure CoSign
+    ###
+        CosignProtected                 On
+        CosignHostname                  connect.webaccess.psu.edu
+        CosignPort                      6664
+        CosignValidReference            ^https?:\/\/.*\.psu\.edu(\/.*)?
+        CosignValidationErrorRedirect   https://webaccess.psu.edu/validation_error.html
+        CosignRedirect                  https://webaccess.psu.edu/
+        CosignPostErrorRedirect         https://webaccess.psu.edu/post_error.html
+        {% if item.hostname == "www" and not item.use_www|default('no')|bool %}
+        CosignService                   {{ item.domain }}
+        {% else %}
+        CosignService                   {{ item.hostname }}.{{ item.domain }}
+        {% endif %}
+        CosignCrypto                    {{ apache_ssl_privatekeys }}/{{ item.hostname }}.{{ item.domain }}.key {{ apache_ssl_path }}/{{ item.hostname }}.{{ item.domain }}.crt {{ apache_ssl_path }}/addtrust-usertrust.pem
+        CosignAllowPublicAccess         Off
+{% endif %}
+
+
+{% block additional_early_config %}
+{% endblock additional_early_config %}
+
+
+    ###
+    # Define the site rewrite rules
+    ###
+        RewriteEngine On
+        # valid values: trace1 - trace8
+        #
+        # view log with: tail -f error_log|fgrep '[rewrite:'
+#        LogLevel alert rewrite:trace3
+
+{% block rewrite_rules %}
+{% if item.hostname == "www" and not item.use_www|default('no')|bool %}
+        # ensure www. is NOT used
+        RewriteCond %{HTTP_HOST}    ^www.{{ item.domain }}$
+        RewriteRule ^(.*)$          http{% if item.use_ssl %}s{% endif %}://{{ item.domain }}$1      [R=permanent,NC,L]
+{% endif %}
+{% if item.hostname == "www" and item.use_www|default('no')|bool %}
+        # ensure www. IS used
+        RewriteCond %{HTTP_HOST}    ^{{ item.domain }}$
+        RewriteRule ^(.*)$          http{% if item.use_ssl %}s{% endif %}://www.{{ item.domain }}$1      [R=permanent,NC,L]
+{% endif %}
+{% endblock rewrite_rules %}
+
+        # load additional rewrite rules
+        IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}/*.conf
+
+
+    ###
+    # Directory access and configuration
+    #
+    # Enable: symbolic links to be followed
+    # Disable: directory listings, Server Side Includes (SSI) and CGI file executions
+    ###
+{% if item.docroot|default('yes')|bool %}
+        <Directory /home/httpd/{{ item.domain }}/{{ item.hostname }}/html>
+            Options -Indexes +FollowSymLinks -Includes -ExecCGI
+            AllowOverride None
+            Require all granted
+        </Directory>
+{% endif %}
+
+{% if item.cosign %}
+        ###
+        # Directory access and configuration for CoSign
+        ###
+            <Directory />
+                Options -Indexes +FollowSymLinks -Includes -ExecCGI
+                AllowOverride None
+            </Directory>
+            <Location />
+                # Configure access restrictions
+                AuthType Cosign
+                Require valid-user
+            </Location>
+
+            <Location /cosign/valid>
+                SetHandler          cosign
+                CosignProtected     Off
+                Require all granted
+            </Location>
+{% endif %}
+
+
+{% block additional_directory_access %}
+{% endblock additional_directory_access %}
+
+
+
+
+    ###
+    # Log configuration
+    # Possible values include: debug, info, notice, warn, error, crit, alert, emerg
+    ###
+        LogLevel warn
+{% if item.use_ssl %}
+        CustomLog /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/ssl-access.log combined
+        ErrorLog  /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/ssl-error.log
+        CustomLog /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/ssl.log \
+            "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+{% else %}
+        CustomLog /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/access.log combined
+        ErrorLog  /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/error.log
+{% endif %}
+
+{% block additional_logging %}
+{% endblock additional_logging %}
+
+
+
+{% if item.use_ssl|default('no')|bool %}
+    ###
+    # Configure SSL
+    ###
+        SSLEngine On
+        SSLCertificateFile {{ apache_ssl_path }}/{{ item.hostname }}.{{ item.domain }}.crt
+        SSLCertificateKeyFile {{ apache_ssl_privatekeys }}/{{ item.hostname }}.{{ item.domain }}.key
+{% if item.ssl_intermediate_cert %}
+        SSLCertificateChainFile {{ apache_ssl_path }}/{{ item.ssl_intermediate_cert }}
+{% endif %}
+{% endif %}
+
+
+{% if item.use_ssl|default('no')|bool and item.cosign|default('no')|bool %}
+    ###
+    # Put CoSign-specified username and realm in headers
+    ###
+        RequestHeader set X_REMOTE_USER %{remoteUser}e
+        RequestHeader set X_REMOTE_REALM %{REMOTE_REALM}e
+{% endif %}
+
+    {% block additional_config %}
+    {% endblock additional_config %}
+
+
+    ###
+    # Application configurations
+    #
+    # This allows for configuration directives to be imported from the
+    # `apps` directory which contain application-specific directives.
+    #
+    # Naming convention for the `apps` directory:
+    #    host.domain.tld[-ssl]/###-app-name.conf
+    ###
+        IncludeOptional apps/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}/*.conf
+</VirtualHost>
