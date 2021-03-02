@@ -158,6 +158,61 @@
         RequestHeader set X_REMOTE_REALM %{REMOTE_REALM}e
 {% endif %}
 
+
+{% if item.proxy_origins|default([])|length > 0 %}
+    ###
+    # Turn on proxying for sending requests to the origin server(s)
+    #
+    # We are using Apache as a reverse proxy/gateway in front of the
+    # origin servers for security and don't need ProxyRequests turned
+    # on but we do need the <Proxy> block and related statements.
+    #
+    # See: /etc/apache2/mods-enabled/proxy.conf for full details
+    ###
+        <IfModule mod_proxy.c>
+            ProxyRequests Off
+
+{% if item.proxy_origins|length == 1 %}
+                <Proxy *>
+                    AddDefaultCharset off
+                    Require all granted
+                </Proxy>
+
+{% if item.use_cosign|default('no')|bool %}
+                ProxyPass /cosign/valid !
+{% endif %}
+{% for url in item.proxy_exclude_urls|default([]) %}
+                ProxyPass {{ url }} !
+{% endfor %}
+                ProxyPass "{{ item.proxy_url }}" "{{ item.proxy_origins[0] }}"
+                ProxyPassReverse "{{ item.proxy_url }}" "{{ item.proxy_origins[0] }}"
+{% endif %}
+
+{% if item.proxy_origins|length > 1 %}
+                <Proxy "balancer://proxyfarm">
+{% for server in item.proxy_origins %}
+                    BalancerMember "{{ server }}"
+{% endfor %}
+
+                    AddDefaultCharset off
+                    Require all granted
+                </Proxy>
+
+{% if item.use_cosign|default('no')|bool %}
+                ProxyPass /cosign/valid !
+{% endif %}
+{% for url in item.proxy_exclude_urls|default([]) %}
+                ProxyPass {{ url }} !
+{% endfor %}
+                ProxyPass "{{ item.proxy_url }}" "balancer://proxyfarm" lbmethod=byrequests maxattempts={{ item.proxy_origins|length - 1 }}
+                ProxyPassReverse "{{ item.proxy_url }}" "balancer://proxyfarm"
+{% endif %}
+
+        </IfModule>
+{% endif %}
+
+
+
     {% block additional_config %}
     {% endblock additional_config %}
 
