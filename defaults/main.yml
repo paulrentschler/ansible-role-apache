@@ -17,20 +17,23 @@ apache_admin_email: ""
 #     enable: yes                (default: yes)
 #     template: ""               (required)
 #     docroot: yes               (default: yes)
+#     use_www: no                (default: no)
 #     use_ssl: yes               (default: no)
 #     use_cosign: yes            (default: no)
 #     use_azuresso: no           (default: no)
+#     redirect2ssl: no           (default: no)
+#     redirect2site: ""          (optional)
 #     ssl_certs_path: certs/
-#     ssl_intermediate_cert: ""
-#     plone_site: Plone
-#     plone_zope_port: 8080
-#     plone_fsd_path: people
-#     use_www: no                (default: no)
-#     proxy_origins: []
-#     proxy_url: "/"
-#     proxy_exclude_urls: []
+#     ssl_intermediate_certs: []
+#     ssl_chain_cert: ""
+#     plone_site: Plone          (default: "")
+#     plone_zope_port: 8080      (default: 8080)
+#     plone_fsd_path: people     (default: "")
+#     plone_varnish_port: 6081   (default: "")
+#     proxy_origins: []          (default: [])
+#     proxy_url: "/"             (optional)
+#     proxy_exclude_urls: []     (default: [])
 ##
-
 apache_vhosts: []
 
 

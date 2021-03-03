@@ -2,7 +2,6 @@
 # {{ ansible_managed }}
 #
 
-
 <VirtualHost {{ item.ip_address }}:{% if item.use_ssl %}443{% else %}80{% endif %}>
 
 {% if item.hostname == "www" %}
@@ -24,6 +23,7 @@
     </IfModule>
 
 
+
 {% if item.use_ssl|default('no')|bool and item.use_cosign|default('no')|bool %}
     ###
     # Configure CoSign
@@ -35,18 +35,15 @@
         CosignValidationErrorRedirect   https://webaccess.psu.edu/validation_error.html
         CosignRedirect                  https://webaccess.psu.edu/
         CosignPostErrorRedirect         https://webaccess.psu.edu/post_error.html
-        {% if item.hostname == "www" and not item.use_www|default('no')|bool %}
+{% if item.hostname == "www" and not item.use_www|default('no')|bool %}
         CosignService                   {{ item.domain }}
-        {% else %}
+{% else %}
         CosignService                   {{ item.hostname }}.{{ item.domain }}
-        {% endif %}
+{% endif %}
         CosignCrypto                    {{ apache_ssl_privatekeys }}/{{ item.hostname }}.{{ item.domain }}.key {{ apache_ssl_path }}/{{ item.hostname }}.{{ item.domain }}.crt {{ apache_ssl_path }}/addtrust-usertrust.pem
         CosignAllowPublicAccess         Off
 {% endif %}
 
-
-{% block additional_early_config %}
-{% endblock additional_early_config %}
 
 
     ###
@@ -79,9 +76,61 @@
         RewriteRule ^(.*)$          http{% if item.use_ssl %}s{% endif %}://www.{{ item.domain }}$1      [R=permanent,NC,L]
 {% endif %}
 
+
         # load additional rewrite rules
         IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}/*.conf
+
+
+{% if item.plone_site|default('') %}
+{% if item.plone_fsd_path|default('') %}
+        # redirect the author pages and the join form to FSD
+        RewriteRule ^/author/(.*)$              /{{ item.plone_fsd_path }}/$1      [R=permanent,NC,L]
+        RewriteRule ^/join_form(.*)$            /{{ item.plone_fsd_path }}         [R=permanent,NC,L]
 {% endif %}
+
+        # disable the sendto_form
+        RewriteRule ^/(.*)/sendto_form(.*)$     /$1             [R=permanent,NC,L]
+
+        # deny access to the ZMI
+        RewriteRule ^/(manage|manage_(.*)|(.*)/manage|(.*)/manage_(.*))   -         [L,NC]
+        <LocationMatch "^/(manage|manage_(.*)|(.*)/manage|(.*)/manage_(.*))">
+            Deny from all
+        </LocationMatch>
+
+
+        ###
+        # Rewrite rules that exclude certain non-plone sites and then direct
+        # everything else to plone. The two rule groups combined normalize
+        # requests to avoid caching /page and /page/ separately.
+        #
+        # This configuration forwards all requests directly to the Zope client
+        # running on port {{ item.plone_zope_port }}.
+        #
+        # The RewriteCond provides an example of how to exclude redirecting
+        # a URL to Plone
+        ###
+{% if item.use_cosign|default('no')|bool %}
+            RewriteCond %{REQUEST_URI}  !^/cosign/valid(.*)$
+{% endif %}
+            IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/exclusions/plone-exclude_*.conf
+{% if item.plone_varnish_port|default('') %}
+            RewriteRule ^/(.*)/$ http://127.0.0.1:{{ item.plone_varnish_port }}/VirtualHostBase/http/%{SERVER_NAME}:80/{{ item.plone_site }}/VirtualHostRoot/$1 [L,P{% if item.use_ssl|default('no')|bool %},E=remoteUser:%{LA-U:REMOTE_USER}{% endif %}]
+{% else %}
+            RewriteRule ^/(.*)/$ http://127.0.0.1:{{ item.plone_zope_port|default('8080') }}/VirtualHostBase/http{% if item.use_ssl|default('no')|bool %}s{% endif %}/%{SERVER_NAME}:{% if item.use_ssl|default('no')|bool %}443{% else %}80{% endif %}/{{ item.plone_site }}/VirtualHostRoot/$1 [L,P{% if item.use_ssl|default('no')|bool %},E=remoteUser:%{LA-U:REMOTE_USER}{% endif %}]
+{% endif %}
+
+{% if item.use_cosign|default('no')|bool %}
+            RewriteCond %{REQUEST_URI}  !^/cosign/valid(.*)$
+{% endif %}
+            IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/exclusions/plone-exclude_*.conf
+{% if item.plone_varnish_port|default('') %}
+            RewriteRule ^/(.*)$ http://127.0.0.1:{{ item.plone_varnish_port }}/VirtualHostBase/http/%{SERVER_NAME}:80/{{ item.plone_site }}/VirtualHostRoot/$1 [L,P{% if item.use_ssl|default('no')|bool %},E=remoteUser:%{LA-U:REMOTE_USER}{% endif %}]
+{% else %}
+            RewriteRule ^/(.*)$ http://127.0.0.1:{{ item.plone_zope_port|default('8080') }}/VirtualHostBase/http{% if item.use_ssl|default('no')|bool %}s{% endif %}/%{SERVER_NAME}:{% if item.use_ssl|default('no')|bool %}443{% else %}80{% endif %}/{{ item.plone_site }}/VirtualHostRoot/$1 [L,P{% if item.use_ssl|default('no')|bool %},E=remoteUser:%{LA-U:REMOTE_USER}{% endif %}]
+{% endif %}
+{% endif %}
+{% endif %}
+
 
 
     ###
@@ -98,7 +147,7 @@
         </Directory>
 {% endif %}
 
-{% if item.cosign %}
+{% if item.use_cosign|default('no')|bool %}
         ###
         # Directory access and configuration for CoSign
         ###
@@ -120,11 +169,6 @@
 {% endif %}
 
 
-{% block additional_directory_access %}
-{% endblock additional_directory_access %}
-
-
-
 
     ###
     # Log configuration
@@ -141,9 +185,6 @@
         ErrorLog  /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/error.log
 {% endif %}
 
-{% block additional_logging %}
-{% endblock additional_logging %}
-
 
 
 {% if item.use_ssl|default('no')|bool %}
@@ -153,10 +194,11 @@
         SSLEngine On
         SSLCertificateFile {{ apache_ssl_path }}/{{ item.hostname }}.{{ item.domain }}.crt
         SSLCertificateKeyFile {{ apache_ssl_privatekeys }}/{{ item.hostname }}.{{ item.domain }}.key
-{% if item.ssl_intermediate_cert %}
-        SSLCertificateChainFile {{ apache_ssl_path }}/{{ item.ssl_intermediate_cert }}
+{% if item.ssl_chain_cert %}
+        SSLCertificateChainFile {{ apache_ssl_path }}/{{ item.ssl_chain_cert }}
 {% endif %}
 {% endif %}
+
 
 
 {% if item.use_ssl|default('no')|bool and item.cosign|default('no')|bool %}
@@ -166,6 +208,7 @@
         RequestHeader set X_REMOTE_USER %{remoteUser}e
         RequestHeader set X_REMOTE_REALM %{REMOTE_REALM}e
 {% endif %}
+
 
 
 {% if item.proxy_origins|default([])|length > 0 %}
@@ -182,48 +225,64 @@
             ProxyRequests Off
 
 {% if item.proxy_origins|length == 1 %}
-                <Proxy *>
-                    AddDefaultCharset off
-                    Require all granted
-                </Proxy>
+            <Proxy *>
+                AddDefaultCharset off
+                Require all granted
+            </Proxy>
 
 {% if item.use_cosign|default('no')|bool %}
-                ProxyPass /cosign/valid !
+            ProxyPass /cosign/valid !
 {% endif %}
 {% for url in item.proxy_exclude_urls|default([]) %}
-                ProxyPass {{ url }} !
+            ProxyPass {{ url }} !
 {% endfor %}
-                ProxyPass "{{ item.proxy_url }}" "{{ item.proxy_origins[0] }}"
-                ProxyPassReverse "{{ item.proxy_url }}" "{{ item.proxy_origins[0] }}"
+            ProxyPass "{{ item.proxy_url }}" "{{ item.proxy_origins[0] }}"
+            ProxyPassReverse "{{ item.proxy_url }}" "{{ item.proxy_origins[0] }}"
 {% endif %}
 
 {% if item.proxy_origins|length > 1 %}
-                <Proxy "balancer://proxyfarm">
+            <Proxy "balancer://proxyfarm">
 {% for server in item.proxy_origins %}
-                    BalancerMember "{{ server }}"
+                BalancerMember "{{ server }}"
 {% endfor %}
-
-                    AddDefaultCharset off
-                    Require all granted
-                </Proxy>
+                AddDefaultCharset off
+                Require all granted
+            </Proxy>
 
 {% if item.use_cosign|default('no')|bool %}
-                ProxyPass /cosign/valid !
+            ProxyPass /cosign/valid !
 {% endif %}
 {% for url in item.proxy_exclude_urls|default([]) %}
-                ProxyPass {{ url }} !
+            ProxyPass {{ url }} !
 {% endfor %}
-                ProxyPass "{{ item.proxy_url }}" "balancer://proxyfarm" lbmethod=byrequests maxattempts={{ item.proxy_origins|length - 1 }}
-                ProxyPassReverse "{{ item.proxy_url }}" "balancer://proxyfarm"
+            ProxyPass "{{ item.proxy_url }}" "balancer://proxyfarm" lbmethod=byrequests maxattempts={{ item.proxy_origins|length - 1 }}
+            ProxyPassReverse "{{ item.proxy_url }}" "balancer://proxyfarm"
 {% endif %}
-
         </IfModule>
 {% endif %}
 
 
 
-    {% block additional_config %}
-    {% endblock additional_config %}
+{% if item.plone_site|default('') %}
+    ###
+    # Turn on proxying for sending requests to Plone
+    #
+    # We are using apache as a reverse proxy/gateway in front of Plone
+    # and don't need ProxyRequests turned on but we do need the
+    # <Proxy *> block and related statements.
+    #
+    # See: /etc/apache2/mods-enabled/proxy.conf for full details
+    ###
+        <IfModule mod_proxy.c>
+            ProxyRequests Off
+            <Proxy *>
+                AddDefaultCharset off
+                Require all granted
+            </Proxy>
+            ProxyVia On
+        </IfModule>
+{% endif %}
+
 
 
     ###
