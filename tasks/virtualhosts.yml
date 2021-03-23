@@ -110,6 +110,8 @@
 
 ### TODO: intermediate certs
 
+### TODO: also potentially handle `item.ssl_chain_cert`
+
 - name: "ssl | upload the private key"
   ansible.builtin.copy:
     src: "{{ item.ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.key"
