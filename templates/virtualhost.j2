@@ -176,13 +176,13 @@
     ###
         LogLevel warn
 {% if item.use_ssl %}
-        CustomLog /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/ssl-access.log combined
-        ErrorLog  /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/ssl-error.log
-        CustomLog /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/ssl.log \
+        CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl-access.log combined
+        ErrorLog  ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl-error.log
+        CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl.log \
             "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
 {% else %}
-        CustomLog /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/access.log combined
-        ErrorLog  /var/log/apache2/{{ item.domain }}/{{ item.hostname }}/error.log
+        CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/access.log combined
+        ErrorLog  ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/error.log
 {% endif %}
 
 
