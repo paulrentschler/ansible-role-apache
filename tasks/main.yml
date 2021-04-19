@@ -44,3 +44,22 @@
   tags:
     - update_certs
 
+
+##
+# Install redirect files
+##
+
+- name: Configure redirects
+  ansible.builtin.copy:
+    src: "../files/redirects/{{ item.src }}"
+    dest: "/etc/apache2/rewrites/{{ item.host }}/{{ item.filename }}"
+    owner: "{{ devops_user }}"
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0664
+  loop: "{{ apache_redirect_files }}"
+  loop_control:
+    label: "{{ item.name|default(item.host+'/'+item.filename) }}"
+  notify: reload Apache
+  tags:
+    - apache_redirects
+

@@ -6,6 +6,7 @@ apache_user: "www-data"
 apache_group: "www-data"
 apache_admin_email: ""
 
+
 ##
 # Virtual hosts
 #
@@ -36,6 +37,22 @@ apache_admin_email: ""
 apache_vhosts: []
 apache_ssl_certs_path: ""
 
+
+##
+# Redirects
+#
+# NOTE: the `name` entry is optional, all others are required
+#
+# apache_redirect_files:
+#   - name: Unit deprecation (non-ssl)
+#     src: rewrite_www.example.com_unit-deprecated.conf
+#     host: www.example.com
+#     filename: 000-unit-deprecated.conf
+#   - src: rewrite_www.example.com_unit-deprecated.conf
+#     host: www.example.com-ssl
+#     filename: 000-unit-deprecated.conf
+##
+apache_redirect_files: []
 
 
 ##
