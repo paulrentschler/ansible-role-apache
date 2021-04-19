@@ -114,7 +114,7 @@
 
 - name: "ssl | upload the private key"
   ansible.builtin.copy:
-    src: "{{ item.ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.key"
+    src: "{{ apache_ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.key"
     dest: "{{ apache_ssl_privatekeys }}/"
     owner: root
     group: root
@@ -129,7 +129,7 @@
 
 - name: "ssl | upload the certificate"
   ansible.builtin.copy:
-    src: "{{ item.ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.crt"
+    src: "{{ apache_ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.crt"
     dest: "{{ apache_ssl_path }}/"
     owner: root
     group: root
