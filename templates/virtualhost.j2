@@ -91,11 +91,19 @@
         # disable the sendto_form
         RewriteRule ^/(.*)/sendto_form(.*)$     /$1             [R=permanent,NC,L]
 
+{% if item.use_ssl|default('no')|bool %}
         # deny access to the ZMI
         RewriteRule ^/(manage|manage_(.*)|(.*)/manage|(.*)/manage_(.*))   -         [L,NC]
         <LocationMatch "^/(manage|manage_(.*)|(.*)/manage|(.*)/manage_(.*))">
             Deny from all
         </LocationMatch>
+{% else %}
+        # redirect ZMI access to use SSL
+        RewriteRule ^/(manage|manage_(.*)|(.*)/manage|(.*)/manage_(.*))      https://%{HTTP_HOST}/$1     [R=permanent,L,NC]
+{% endif %}
+
+        # prevent access to the Zope root page
+        RewriteRule ^/aq_(.*)                   /                  [R=permanent,L]
 
 
         ###
