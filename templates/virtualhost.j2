@@ -2,7 +2,7 @@
 # {{ ansible_managed }}
 #
 
-<VirtualHost {{ item.ip_address|default('*') }}:{% if item.use_ssl %}443{% else %}80{% endif %}>
+<VirtualHost {{ item.ip_address|default('*') }}:{% if item.use_ssl|default('no')|bool %}443{% else %}80{% endif %}>
 
 {% if item.hostname == "www" %}
     ServerName {{ item.domain }}
@@ -62,23 +62,23 @@
 
 {% elif item.redirect2site|default('') %}
         # redirect all traffic to another site
-        IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}/exclusions/redirect2other-exclude_*.conf
+        IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/exclusions/redirect2other-exclude_*.conf
         RewriteRule ^(.*)   {{ item.redirect2site }}/$1       [R=permanent,NC,L]
 
 {% else %}
 {% if item.hostname == "www" and not item.use_www|default('no')|bool %}
         # ensure www. is NOT used
         RewriteCond %{HTTP_HOST}    ^www.{{ item.domain }}$
-        RewriteRule ^(.*)$          http{% if item.use_ssl %}s{% endif %}://{{ item.domain }}$1      [R=permanent,NC,L]
+        RewriteRule ^(.*)$          http{% if item.use_ssl|default('no')|bool %}s{% endif %}://{{ item.domain }}$1      [R=permanent,NC,L]
 {% elif item.hostname == "www" and item.use_www|default('no')|bool %}
         # ensure www. IS used
         RewriteCond %{HTTP_HOST}    ^{{ item.domain }}$
-        RewriteRule ^(.*)$          http{% if item.use_ssl %}s{% endif %}://www.{{ item.domain }}$1      [R=permanent,NC,L]
+        RewriteRule ^(.*)$          http{% if item.use_ssl|default('no')|bool %}s{% endif %}://www.{{ item.domain }}$1      [R=permanent,NC,L]
 {% endif %}
 
 
         # load additional rewrite rules
-        IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}/*.conf
+        IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/*.conf
 
 
 {% if item.plone_site|default('') %}
@@ -180,7 +180,7 @@
     # Possible values include: debug, info, notice, warn, error, crit, alert, emerg
     ###
         LogLevel warn
-{% if item.use_ssl %}
+{% if item.use_ssl|default('no')|bool %}
         CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl-access.log combined
         ErrorLog  ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl-error.log
         CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl.log \
@@ -299,5 +299,6 @@
     # Naming convention for the `apps` directory:
     #    host.domain.tld[-ssl]/###-app-name.conf
     ###
-        IncludeOptional apps/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}/*.conf
+        IncludeOptional apps/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/*.conf
+{% endif %}
 </VirtualHost>
