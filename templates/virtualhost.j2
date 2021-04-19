@@ -146,6 +146,7 @@
 
 
 
+{% if not item.redirect2site|default('') %}
     ###
     # Directory access and configuration
     #
@@ -158,6 +159,7 @@
             AllowOverride None
             Require all granted
         </Directory>
+{% endif %}
 {% endif %}
 
 {% if item.use_cosign|default('no')|bool %}
@@ -214,7 +216,7 @@
 
 
 
-{% if item.use_ssl|default('no')|bool and item.cosign|default('no')|bool %}
+{% if item.use_ssl|default('no')|bool and item.use_cosign|default('no')|bool %}
     ###
     # Put CoSign-specified username and realm in headers
     ###
@@ -298,6 +300,7 @@
 
 
 
+{% if not item.redirect2site|default('') %}
     ###
     # Application configurations
     #
