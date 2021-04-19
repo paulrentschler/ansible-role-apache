@@ -28,12 +28,18 @@ TraceEnable Off
 #
 # Do NOT add a slash at the end of the directory path.
 #
-ServerRoot "/etc/apache2"
+#ServerRoot "/etc/apache2"
 
 #
 # The accept serialization lock file MUST BE STORED ON A LOCAL DISK.
 #
-Mutex file:/var/lock/apache2 default
+#Mutex file:/var/lock/apache2 default
+
+#
+# The directory where shm and other runtime files will be stored.
+#
+
+DefaultRuntimeDir ${APACHE_RUN_DIR}
 
 #
 # PidFile: The file in which the server should record its process
@@ -41,7 +47,7 @@ Mutex file:/var/lock/apache2 default
 # /etc/sysconfig/httpd must be set appropriately if this location is
 # changed.
 #
-PidFile {{ apache_pidfile }}
+PidFile ${APACHE_PID_FILE}
 
 #
 # Timeout: The number of seconds before receives and sends time out.
@@ -175,6 +181,7 @@ UseCanonicalName Off
 <Directory />
     Options -Indexes +FollowSymLinks -Includes -ExecCGI
     AllowOverride None
+    Require all denied
 </Directory>
 
 #
@@ -270,7 +277,7 @@ HostnameLookups Off
 #
 # Location of the error log file
 #
-ErrorLog logs/default/error.log
+ErrorLog ${APACHE_LOG_DIR}/default/error.log
 
 #
 # LogLevel: Control the number of messages logged to the error_log
@@ -289,7 +296,7 @@ LogFormat "%{User-agent}i" agent
 #
 # Single access log file with access, agent, and referer information
 #
-CustomLog logs/default/access.log combined
+CustomLog ${APACHE_LOG_DIR}/default/access.log combined
 
 
 #

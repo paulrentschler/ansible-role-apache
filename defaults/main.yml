@@ -55,7 +55,7 @@ apache_cosign_module: "/usr/lib/apache2/modules/mod_cosign.so"
 # These should rarely need to be changed
 ##
 
-apache_pidfile: "${APACHE_PID_FILE}"
+# apache_pidfile: "${APACHE_PID_FILE}"
 apache_magicfile: "/etc/apache2/magic"
 # apache_daemon: "apache2"
 # apache_conf: "apache2.conf"
