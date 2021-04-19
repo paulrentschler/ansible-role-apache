@@ -108,11 +108,7 @@
 # SSL
 ##
 
-### TODO: intermediate certs
-
-### TODO: also potentially handle `item.ssl_chain_cert`
-
-- name: "ssl | upload the private key"
+- name: "ssl | upload the private keys"
   ansible.builtin.copy:
     src: "{{ apache_ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.key"
     dest: "{{ apache_ssl_privatekeys }}/"
@@ -124,10 +120,11 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: item.use_ssl|bool
   tags:
     - update_certs
 
-- name: "ssl | upload the certificate"
+- name: "ssl | upload the certificates"
   ansible.builtin.copy:
     src: "{{ apache_ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.crt"
     dest: "{{ apache_ssl_path }}/"
@@ -139,11 +136,33 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: item.use_ssl|bool
   tags:
     - update_certs
 
-### TODO: handle intermediate cert hashes/aliases
+### TODO: intermediate certs
 
+- name: "ssl | upload the chain certificates"
+  ansible.builtin.copy:
+    src: "{{ apache_ssl_certs_path }}{{ item.ssl_chain_cert }}"
+    dest: "{{ apache_ssl_path }}/"
+    owner: root
+    group: root
+    mode: 0444
+  become: yes
+  notify: restart Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+  when: item.use_ssl|bool and item.ssl_chain_cert
+  tags:
+    - update_certs
+
+- name: "ssl | generate hashed aliases for certificates"
+  ansible.builtin.command: "c_rehash {{ apache_ssl_path }}"
+  become: yes
+  tags:
+    - update_certs
 
 
 
