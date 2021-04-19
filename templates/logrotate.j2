@@ -29,6 +29,8 @@
 # run the pre and post rotation scripts against all the matched files at once
     sharedscripts
     postrotate
-        /etc/init.d/apache2 reload > /dev/null
+        if invoke-rc.d apache2 status > /dev/null 2>&1; then \
+            invoke-rc.d apache2 reload > /dev/null 2>&1; \
+        fi;
     endscript
 }
