@@ -45,7 +45,7 @@
     state: directory
     recurse: yes
     owner: root
-    group: "{{ devops_group|default('adm')"
+    group: "{{ devops_group|default('adm') }}"
     mode: 0750
   become: yes
   loop: "{{ apache_vhosts }}"
@@ -74,7 +74,7 @@
 
 - name: "rewrites | create the directory structure"
   ansible.builtin.file:
-    path: "/etc/apache2/rewrites/{{ item.hostname }}.{{ vhost_domain }}{% if item.use_ssl %}-ssl{% endif %}/exclusions"
+    path: "/etc/apache2/rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}/exclusions"
     state: directory
     owner: root
     group: "{{ devops_group|default('adm') }}"
@@ -92,7 +92,7 @@
 
 - name: "apps | create the directory structure"
   ansible.builtin.file:
-    path: "/etc/apache2/apps/{{ item.hostname }}.{{ vhost_domain }}{% if item.use_ssl %}-ssl{% endif %}"
+    path: "/etc/apache2/apps/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
     state: directory
     owner: root
     group: "{{ devops_group|default('adm') }}"
@@ -153,8 +153,8 @@
 
 - name: "vhost | create the virtual host conf file"
   ansible.builtin.template:
-    src: "{{ item.template|default('virtualhost{% if item.use_ssl %}-ssl{% endif %}.j2') }}"
-    dest: "/etc/apache2/sites-available/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+    src: "{{ item.template|default('virtualhost.j2') }}"
+    dest: "/etc/apache2/sites-available/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}.conf"
     owner: root
     group: "{{ devops_group|default('adm') }}"
     mode: 0664
@@ -168,7 +168,7 @@
   ansible.builtin.shell:
     cmd: "a2ensite {{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
     chdir: "/etc/apache2/sites-available"
-    creates: "/etc/apache2/sites-enabled/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}"
+    creates: "/etc/apache2/sites-enabled/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl %}-ssl{% endif %}.conf"
   become: yes
   notify: reload Apache
   loop: "{{ apache_vhosts }}"
