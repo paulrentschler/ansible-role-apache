@@ -130,3 +130,6 @@
     mode: 0444
   become: yes
   notify: restart Apache
+  tags:
+    - apache_update_certs
+
