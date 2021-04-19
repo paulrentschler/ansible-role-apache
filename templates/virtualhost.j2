@@ -14,13 +14,13 @@
 
 {% if item.docroot|default('yes')|bool %}
     DocumentRoot "/home/httpd/{{ item.domain }}/{{ item.hostname }}/html"
-{% endif %}
 
     <IfModule mod_php.c>
         <IfModule mod_dir.c>
             DirectoryIndex index.php index.html index.html.var
         </IfModule>
     </IfModule>
+{% endif %}
 
 
 
