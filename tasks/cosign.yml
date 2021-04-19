@@ -26,7 +26,7 @@
 
 - name: "cosign | add APX support to Apache"
   ansible.builtin.apt:
-    name: apache2-threaded-dev
+    name: apache2-dev
     state: present
     update_cache: yes
   register: _apx_support_status
