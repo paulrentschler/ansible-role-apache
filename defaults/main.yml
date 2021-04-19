@@ -15,7 +15,7 @@ apache_admin_email: ""
 #     ip_address: "*"            (default: "*")
 #     priority: 100              (required)
 #     enable: yes                (default: yes)
-#     template: ""               (required)
+#     template: ""               (default: "virtualhost.j2")
 #     docroot: yes               (default: yes)
 #     use_www: no                (default: no)
 #     use_ssl: yes               (default: no)
