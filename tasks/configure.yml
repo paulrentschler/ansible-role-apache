@@ -24,18 +24,6 @@
 # ownership and permissions are correct.
 ##
 
-- name: "configure | remove initial log files"
-  ansible.builtin.file:
-    path: "/var/log/apache2/{{ item }}"
-    state: absent
-  loop:
-    - access_log
-    - error_log
-    - access.log
-    - error.log
-    - other_vhosts_access.log
-  become: yes
-
 - name: "configure | create new default log directory"
   ansible.builtin.file:
     path: "/var/log/apache2/default/archive"
@@ -123,42 +111,6 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0644
   become: yes
-
-
-
-##
-# CONFIG FILE CLEAN UP
-#
-# Removes the additional configuration files referenced by Ubuntu's default
-# main configuration file (apache2.conf) as they are not used by the
-# Ansible-managed main configuration file.
-#
-# Disables any additional configuration files as they are not used by the
-# Ansible-managed main configuration file.
-##
-- name: "configure | remove additional config files"
-  ansible.builtin.file:
-    path: "/etc/apache2/{{ item }}"
-  loop:
-    - httpd.conf
-    - ports.conf
-  become: yes
-  notify: restart Apache
-
-- name: "configure | disable sub-configuration files"
-  ansible.builtin.shell:
-    vars:
-      - a2disconf
-      - "{{ item }}"
-    removes: "/etc/apache2/conf-enabled/{{ item }}"
-  loop:
-    - "charset.conf"
-    - "localized-error-pages.conf"
-    - "other-vhosts-access-log.conf"
-    - "security.conf"
-    - "serve-cgi-bin.conf"
-  become: yes
-  notify: restart Apache
 
 
 
@@ -261,36 +213,6 @@
 
 
 ##
-# REMOVE DEFAULT VIRTUAL HOSTS
-##
-- name: "configure | disable default virtual hosts"
-  ansible.builtin.shell:
-    vars:
-      - a2dissite
-      - "{{ item }}"
-    chdir: "/etc/apache2/sites-available"
-    removes: "/etc/apache2/sites-enabled/{{ item }}"
-  loop:
-    - default
-    - default-ssl
-    - 000-default.conf
-    - default-ssl.conf
-  become: yes
-
-- name: "configure | delete default virtual hosts"
-  ansible.builtin.file:
-    path: "/etc/apache2/sites-available/{{ item }}"
-    state: absent
-  loop:
-    - default
-    - default-ssl
-    - 000-default.conf
-    - default-ssl.conf
-  become: yes
-
-
-
-##
 # MODULES
 #
 # Enable and disable some modules on Debian-based systems to match
@@ -331,6 +253,99 @@
     owner: root
     group: "{{ devops_group|default('adm') }}"
     mode: 0664
+  register: _apache_conf_updated
+  become: yes
+
+- name: "configure | Restart Apache"
+  ansible.builtin.service:
+    name: apache2
+    state: restarted
+    enabled: true
+  become: yes
+  when: _apache_conf_updated is changed
+
+
+
+##
+# CONFIG FILE CLEAN UP
+#
+# Removes the additional configuration files referenced by Ubuntu's default
+# main configuration file (apache2.conf) as they are not used by the
+# Ansible-managed main configuration file.
+#
+# Disables any additional configuration files as they are not used by the
+# Ansible-managed main configuration file.
+##
+- name: "configure | remove additional config files"
+  ansible.builtin.file:
+    path: "/etc/apache2/{{ item }}"
+    state: absent
+  loop:
+    - httpd.conf
+    - ports.conf
   become: yes
   notify: restart Apache
+
+- name: "configure | disable sub-configuration files"
+  ansible.builtin.shell:
+    argv:
+      - a2disconf
+      - "{{ item }}"
+    removes: "/etc/apache2/conf-enabled/{{ item }}"
+  loop:
+    - "charset.conf"
+    - "localized-error-pages.conf"
+    - "other-vhosts-access-log.conf"
+    - "security.conf"
+    - "serve-cgi-bin.conf"
+  become: yes
+  notify: restart Apache
+
+
+
+##
+# REMOVE DEFAULT VIRTUAL HOSTS
+##
+- name: "configure | disable default virtual hosts"
+  ansible.builtin.shell:
+    argv:
+      - a2dissite
+      - "{{ item }}"
+    chdir: "/etc/apache2/sites-available"
+    removes: "/etc/apache2/sites-enabled/{{ item }}"
+  loop:
+    - default
+    - default-ssl
+    - 000-default.conf
+    - default-ssl.conf
+  become: yes
+
+- name: "configure | delete default virtual hosts"
+  ansible.builtin.file:
+    path: "/etc/apache2/sites-available/{{ item }}"
+    state: absent
+  loop:
+    - default
+    - default-ssl
+    - 000-default.conf
+    - default-ssl.conf
+  become: yes
+
+
+
+##
+# LOG CLEAN UP
+##
+
+- name: "configure | remove initial log files"
+  ansible.builtin.file:
+    path: "/var/log/apache2/{{ item }}"
+    state: absent
+  loop:
+    - access_log
+    - error_log
+    - access.log
+    - error.log
+    - other_vhosts_access.log
+  become: yes
 
