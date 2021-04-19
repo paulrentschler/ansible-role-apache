@@ -2,7 +2,7 @@
 # {{ ansible_managed }}
 #
 
-<VirtualHost {{ item.ip_address }}:{% if item.use_ssl %}443{% else %}80{% endif %}>
+<VirtualHost {{ item.ip_address|default('*') }}:{% if item.use_ssl %}443{% else %}80{% endif %}>
 
 {% if item.hostname == "www" %}
     ServerName {{ item.domain }}

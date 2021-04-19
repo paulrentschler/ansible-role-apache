@@ -12,7 +12,7 @@ apache_admin_email: ""
 # apache_vhosts:
 #   - hostname: "www"            (required)
 #     domain: "example.com"      (required)
-#     ip_address: "*"            ()
+#     ip_address: "*"            (default: "*")
 #     priority: 100              (required)
 #     enable: yes                (default: yes)
 #     template: ""               (required)
