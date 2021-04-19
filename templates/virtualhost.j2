@@ -103,8 +103,13 @@
         # everything else to plone. The two rule groups combined normalize
         # requests to avoid caching /page and /page/ separately.
         #
-        # This configuration forwards all requests directly to the Zope client
-        # running on port {{ item.plone_zope_port }}.
+{% if item.plone_varnish_port|default('') %}
+        # This configuration forwards all requests directly to the
+        # Varnish Caching server running on port 6081.
+{% else %}
+        # This configuration forwards all requests directly to the
+        # Zope client running on port {{ item.plone_zope_port }}.
+{% endif %}
         #
         # The RewriteCond provides an example of how to exclude redirecting
         # a URL to Plone
