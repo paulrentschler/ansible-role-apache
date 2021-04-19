@@ -47,42 +47,50 @@
     mode: 0775
   become: yes
 
+- name: "cosign | check for module installation"
+  ansible.builtin.stat:
+    path: "{{ apache_cosign_module }}"
+  register: _apache_cosign_installed
+
 - name: "cosign | download the tarball"
   ansible.builtin.get_url:
     url: "{{ apache_cosign_path }}{{ apache_cosign_tarball }}"
     dest: /usr/local/src/
     mode: 0660
+  when: not _apache_cosign_installed.stat.exists
 
 - name: "cosign | extract the tarball"
   ansible.builtin.unarchive:
     src: "/usr/local/src/{{ apache_cosign_tarball }}"
     dest: "/usr/local/src/"
     remote_src: yes
+  when: not _apache_cosign_installed.stat.exists
 
 - name: "cosign | patch the CoSign code for Apache 2.4"
   ansible.builtin.replace:
     dest: /usr/local/src/{{ apache_cosign_name }}/filters/apache2/mod_cosign.c
     regexp: 'remote_ip'
     replace: 'client_ip'
-  # when: apache_version is defined and apache_version.stdout.find("Apache/2.4") != -1
+  when: not _apache_cosign_installed.stat.exists
 
 - name: "cosign | configure the package"
   ansible.builtin.shell:
     cmd: "./configure --enable-apache2={{ apache_apx_path }}"
     chdir: "/usr/local/src/{{ apache_cosign_name }}"
     creates: "/usr/local/src/{{ apache_cosign_name }}/Makefile"
+  when: not _apache_cosign_installed.stat.exists
 
 - name: "cosign | make the module"
   community.general.make:
     chdir: "/usr/local/src/{{ apache_cosign_name }}"
-  # shell: "cd /usr/local/src/{{ apache_cosign_name }};make creates=/usr/local/src/{{ apache_cosign_name }}/filters/apache2/mod_cosign.lo"
+  when: not _apache_cosign_installed.stat.exists
 
 - name: "cosign | install the module"
   community.general.make:
     chdir: "/usr/local/src/{{ apache_cosign_name }}"
     target: "install"
-  # shell: "cd /usr/local/src/{{ apache_cosign_name }};make install creates={{ apache_cosign_module }}"
   become: yes
+  when: not _apache_cosign_installed.stat.exists
 
 - name: "cosign | create the filter directory"
   ansible.builtin.file:
