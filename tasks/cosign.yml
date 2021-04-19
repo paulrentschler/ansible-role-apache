@@ -113,3 +113,12 @@
   become: yes
   notify: restart Apache
 
+- name: "upload the SSL certificate"
+  ansible.builtin.copy:
+    src: "{{ apache_ssl_certs_path }}addtrust-usertrust.pem"
+    dest: "{{ apache_ssl_path }}/"
+    owner: root
+    group: root
+    mode: 0444
+  become: yes
+  notify: restart Apache
