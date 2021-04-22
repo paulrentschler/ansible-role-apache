@@ -38,6 +38,7 @@ apache_vhosts: []
 apache_ssl_certs_path: ""
 
 
+
 ##
 # Redirects
 #
@@ -53,6 +54,17 @@ apache_ssl_certs_path: ""
 #     filename: 000-unit-deprecated.conf
 ##
 apache_redirect_files: []
+
+
+
+##
+# AzureSSO values
+##
+
+apache_azuresso_openidc_version: "2.4.7"
+apache_azuresso_domain_hint: ""
+apache_azuresso_large_claims: no
+
 
 
 ##

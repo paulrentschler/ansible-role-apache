@@ -1,0 +1,26 @@
+#
+# {{ ansible_managed }}
+#
+#
+# This is the Apache server configuration file providing OpenID Connect support.
+#
+
+
+OIDCProviderMetadataURL {{ apache_azuresso_provider_url }}
+OIDCSSLValidateServer Off
+
+OIDCRemoteUserClaim upn ^(.*)@
+OIDCScope "openid profile"
+{% if apache_azuresso_domain_hint %}
+# Next skips "Sign In" window:
+OIDCPathAuthRequestParams "domain_hint={{ apache_azuresso_domain_hint }}"
+{% endif %}
+{% if apache_azuresso_large_claims|bool %}
+# Next needed if many claims or a large one (e.g., group list) are being sent:
+OIDCCacheShmEntrySizeMax 21504
+{% endif %}
+
+OIDCClientID {{ apache_azuresso_app_id }}
+OIDCClientSecret {{ apache_azuresso_client_secret }}
+OIDCCryptoPassphrase {{ apache_azuresso_passphrase }}
+

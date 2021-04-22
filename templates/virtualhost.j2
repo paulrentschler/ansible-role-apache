@@ -24,6 +24,22 @@
 
 
 
+{% if item.use_ssl|default('no')|bool and item.use_azuresso|default('no')|bool %}
+    ###
+    # Configure AzureSSO
+    ###
+        # For debugging/seeing session info. Can be removed for production:
+        #OIDCInfoHook iat access_token access_token_expires id_token userinfo refresh_token session
+
+{% if item.hostname == "www" and not item.use_www|default('no')|bool %}
+        OIDCRedirectURI /https://{{ item.domain }}/valid/redirect_uri
+{% else %}
+        OIDCRedirectURI /https://{{ item.hostname }}.{{ item.domain }}/valid/redirect_uri
+{% endif %}
+{% endif %}
+
+
+
 {% if item.use_ssl|default('no')|bool and item.use_cosign|default('no')|bool %}
     ###
     # Configure CoSign
@@ -50,10 +66,6 @@
     # Define the site rewrite rules
     ###
         RewriteEngine On
-        # valid values: trace1 - trace8
-        #
-        # view log with: tail -f error_log|fgrep '[rewrite:'
-#        LogLevel alert rewrite:trace3
 
 {% if item.use_ssl|default('no')|bool and item.redirect2ssl|default('no')|bool %}
         # redirect all traffic to the SSL'ed site
@@ -162,7 +174,27 @@
 {% endif %}
 {% endif %}
 
-{% if item.use_cosign|default('no')|bool %}
+{% if item.use_ssl|default('no')|bool and item.use_azuresso|default('no')|bool %}
+        ###
+        # Directory access and configuration for AzureSSO
+        ###
+            <Directory />
+                Options -Indexes +FollowSymLinks -Includes -ExecCGI
+                AllowOverride None
+            </Directory>
+            <Location />
+                # Configure access restrictions
+                AuthType openid-connect
+                Require valid-user
+            </Location>
+
+            <Location /valid>
+                AuthType openid-connect
+                Require valid-user
+            </Location>
+{% endif %}
+
+{% if item.use_ssl|default('no')|bool and item.use_cosign|default('no')|bool %}
         ###
         # Directory access and configuration for CoSign
         ###
@@ -188,8 +220,27 @@
     ###
     # Log configuration
     # Possible values include: debug, info, notice, warn, error, crit, alert, emerg
+    #
+{% if item.use_ssl|default('no')|bool and item.use_azuresso|default('no')|bool %}
+    # View AzureSSO log statements with:
+    #     tail -f {% if item.use_ssl|default('no')|bool %}ssl-{% endif %}error.log | fgrep 'openidc:'
+    #
+{% endif %}
+    # View redirect log statements with:
+    #     tail -f {% if item.use_ssl|default('no')|bool %}ssl-{% endif %}error.log | fgrep '[rewrite:'
     ###
+
+        # Normal logging
         LogLevel warn
+
+{% if item.use_ssl|default('no')|bool and item.use_azuresso|default('no')|bool %}
+        # Logging with AzureSSO
+        #LogLevel debug auth_openidc:debug
+
+{% endif %}
+        # Logging with rewrites (valid values: trace1 - trace8)
+        #LogLevel info rewrite:trace3
+
 {% if item.use_ssl|default('no')|bool %}
         CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl-access.log combined
         ErrorLog  ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl-error.log
