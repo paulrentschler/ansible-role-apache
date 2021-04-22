@@ -294,6 +294,7 @@
     removes: "/etc/apache2/conf-enabled/{{ item }}"
   loop:
     - "charset.conf"
+    - "javascript-common.conf"
     - "localized-error-pages.conf"
     - "other-vhosts-access-log.conf"
     - "security.conf"
