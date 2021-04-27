@@ -134,6 +134,9 @@
         # The RewriteCond provides an example of how to exclude redirecting
         # a URL to Plone
         ###
+{% if item.use_azuresso|default('no')|bool %}
+            RewriteCond %{REQUEST_URI}  !^/valid/redirect_uri(.*)$
+{% endif %}
 {% if item.use_cosign|default('no')|bool %}
             RewriteCond %{REQUEST_URI}  !^/cosign/valid(.*)$
 {% endif %}
@@ -144,6 +147,9 @@
             RewriteRule ^/(.*)/$ http://127.0.0.1:{{ item.plone_zope_port|default('8080') }}/VirtualHostBase/http{% if item.use_ssl|default('no')|bool %}s{% endif %}/%{SERVER_NAME}:{% if item.use_ssl|default('no')|bool %}443{% else %}80{% endif %}/{{ item.plone_site }}/VirtualHostRoot/$1 [L,P{% if item.use_ssl|default('no')|bool %},E=remoteUser:%{LA-U:REMOTE_USER}{% endif %}]
 {% endif %}
 
+{% if item.use_azuresso|default('no')|bool %}
+            RewriteCond %{REQUEST_URI}  !^/valid/redirect_uri(.*)$
+{% endif %}
 {% if item.use_cosign|default('no')|bool %}
             RewriteCond %{REQUEST_URI}  !^/cosign/valid(.*)$
 {% endif %}
@@ -178,17 +184,17 @@
         ###
         # Directory access and configuration for AzureSSO
         ###
+            <Location /valid>
+                AuthType openid-connect
+                Require valid-user
+            </Location>
+
             <Directory />
                 Options -Indexes +FollowSymLinks -Includes -ExecCGI
                 AllowOverride None
             </Directory>
             <Location />
                 # Configure access restrictions
-                AuthType openid-connect
-                Require valid-user
-            </Location>
-
-            <Location /valid>
                 AuthType openid-connect
                 Require valid-user
             </Location>
@@ -296,6 +302,9 @@
                 Require all granted
             </Proxy>
 
+{% if item.use_azuresso|default('no')|bool %}
+            ProxyPass /valid/redirect_uri !
+{% endif %}
 {% if item.use_cosign|default('no')|bool %}
             ProxyPass /cosign/valid !
 {% endif %}
@@ -315,6 +324,9 @@
                 Require all granted
             </Proxy>
 
+{% if item.use_azuresso|default('no')|bool %}
+            ProxyPass /valid/redirect_uri !
+{% endif %}
 {% if item.use_cosign|default('no')|bool %}
             ProxyPass /cosign/valid !
 {% endif %}
