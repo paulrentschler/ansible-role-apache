@@ -245,7 +245,7 @@
 
 {% endif %}
         # Logging with rewrites (valid values: trace1 - trace8)
-        #LogLevel info rewrite:trace3
+        #LogLevel info rewrite:trace5
 
 {% if item.use_ssl|default('no')|bool %}
         CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl-access.log combined
