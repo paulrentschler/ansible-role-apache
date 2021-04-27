@@ -32,9 +32,9 @@
         #OIDCInfoHook iat access_token access_token_expires id_token userinfo refresh_token session
 
 {% if item.hostname == "www" and not item.use_www|default('no')|bool %}
-        OIDCRedirectURI /https://{{ item.domain }}/valid/redirect_uri
+        OIDCRedirectURI https://{{ item.domain }}/valid/redirect_uri
 {% else %}
-        OIDCRedirectURI /https://{{ item.hostname }}.{{ item.domain }}/valid/redirect_uri
+        OIDCRedirectURI https://{{ item.hostname }}.{{ item.domain }}/valid/redirect_uri
 {% endif %}
 {% endif %}
 
