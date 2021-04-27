@@ -273,14 +273,23 @@
 
 
 
+{% if item.use_ssl|default('no')|bool and item.use_assuresso|default('no')|bool %}
+    ###
+    # Put AzureSSO-specified username in headers
+    ###
+        <IfModule mod_auth_openidc.c>
+            RequestHeader set X_REMOTE_USER %{remoteUser}e
+        </IfModule>
+{% endif %}
 {% if item.use_ssl|default('no')|bool and item.use_cosign|default('no')|bool %}
     ###
     # Put CoSign-specified username and realm in headers
     ###
-        RequestHeader set X_REMOTE_USER %{remoteUser}e
-        RequestHeader set X_REMOTE_REALM %{REMOTE_REALM}e
+        <IfModule mod_cosign.c>
+            RequestHeader set X_REMOTE_USER %{remoteUser}e
+            RequestHeader set X_REMOTE_REALM %{REMOTE_REALM}e
+        </IfModule>
 {% endif %}
-
 
 
 {% if item.proxy_origins|default([])|length > 0 %}
