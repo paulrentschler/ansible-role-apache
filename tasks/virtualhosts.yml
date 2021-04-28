@@ -6,7 +6,7 @@
 # DOCUMENT ROOT
 ##
 
-- name: "docroot | create the directory structure"
+- name: "Virtual host : docroot : create the directory structure"
   ansible.builtin.file:
     path: "/home/httpd/{{ item.domain }}/{{ item.hostname }}"
     state: directory
@@ -20,7 +20,7 @@
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "item.docroot|default('yes')|bool"
 
-- name: "docroot | create the document root"
+- name: "Virtual host : docroot : create the document root"
   ansible.builtin.file:
     path: "/home/httpd/{{ item.domain }}/{{ item.hostname }}/html"
     state: directory
@@ -39,7 +39,7 @@
 # LOGS
 ##
 
-- name: "logs | create the log directory"
+- name: "Virtual host : logs : create the log directory"
   ansible.builtin.file:
     path: "/var/log/apache2/{{ item.domain }}/{{ item.hostname }}/archive"
     state: directory
@@ -52,7 +52,7 @@
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
 
-- name: "logs | configure log file rotation"
+- name: "Virtual host : logs : configure log file rotation"
   ansible.builtin.template:
     src: logrotate.j2
     dest: "/etc/logrotate.d/apache2-{{ item.hostname }}.{{ item.domain }}"
@@ -72,7 +72,7 @@
 # REWRITES
 ##
 
-- name: "rewrites | create the directory structure"
+- name: "Virtual host : rewrites : create the directory structure"
   ansible.builtin.file:
     path: "/etc/apache2/rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/exclusions"
     state: directory
@@ -90,7 +90,7 @@
 # APPS
 ##
 
-- name: "apps | create the directory structure"
+- name: "Virtual host : apps : create the directory structure"
   ansible.builtin.file:
     path: "/etc/apache2/apps/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
     state: directory
@@ -108,7 +108,7 @@
 # SSL
 ##
 
-- name: "ssl | upload the private keys"
+- name: "Virtual host : ssl : upload the private keys"
   ansible.builtin.copy:
     src: "{{ apache_ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.key"
     dest: "{{ apache_ssl_privatekeys }}/"
@@ -124,7 +124,7 @@
   tags:
     - apache_update_certs
 
-- name: "ssl | upload the certificates"
+- name: "Virtual host : ssl : upload the certificates"
   ansible.builtin.copy:
     src: "{{ apache_ssl_certs_path }}{{ item.hostname }}.{{ item.domain }}.crt"
     dest: "{{ apache_ssl_path }}/"
@@ -142,7 +142,7 @@
 
 ### TODO: intermediate certs
 
-- name: "ssl | upload the chain certificates"
+- name: "Virtual host : ssl : upload the chain certificates"
   ansible.builtin.copy:
     src: "{{ apache_ssl_certs_path }}{{ item.ssl_chain_cert }}"
     dest: "{{ apache_ssl_path }}/"
@@ -158,7 +158,7 @@
   tags:
     - apache_update_certs
 
-- name: "ssl | generate hashed aliases for certificates"
+- name: "Virtual host : ssl : generate hashed aliases for certificates"
   ansible.builtin.command: "c_rehash {{ apache_ssl_path }}"
   become: yes
   tags:
@@ -170,7 +170,7 @@
 # VIRTUAL HOST
 ##
 
-- name: "vhost | create the virtual host conf file"
+- name: "Virtual host : vhost : create the virtual host conf file"
   ansible.builtin.template:
     src: "{{ item.template|default('virtualhost.j2') }}"
     dest: "/etc/apache2/sites-available/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}.conf"
@@ -183,7 +183,7 @@
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
 
-- name: "vhost | enable the virtual host"
+- name: "Virtual host : vhost : enable the virtual host"
   ansible.builtin.shell:
     cmd: "a2ensite {{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
     chdir: "/etc/apache2/sites-available"
@@ -201,7 +201,7 @@
 # PROXYING
 ##
 
-- name: "proxy | enable proxy module"
+- name: "Virtual host : proxy : enable proxy module"
   community.general.apache2_module:
     name: proxy
     state: present
@@ -212,7 +212,7 @@
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != ''"
 
-- name: "proxy | enable proxy_http module"
+- name: "Virtual host : proxy : enable proxy_http module"
   community.general.apache2_module:
     name: proxy_http
     state: present
@@ -223,7 +223,7 @@
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != ''"
 
-- name: "proxy | enable proxy_balancer module"
+- name: "Virtual host : proxy : enable proxy_balancer module"
   community.general.apache2_module:
     name: proxy_balancer
     state: present
@@ -234,7 +234,7 @@
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "item.proxy_origins|default([])|length > 1"
 
-- name: "proxy | enable lbmethod_byrequests module"
+- name: "Virtual host : proxy : enable lbmethod_byrequests module"
   community.general.apache2_module:
     name: lbmethod_byrequests
     state: present

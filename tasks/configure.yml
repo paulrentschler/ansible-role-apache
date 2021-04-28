@@ -6,7 +6,7 @@
 # DOCUMENT ROOTS
 ##
 
-- name: "configure | base directory for document roots"
+- name: "configure : base directory for document roots"
   ansible.builtin.file:
     path: /home/httpd
     state: directory
@@ -24,7 +24,7 @@
 # ownership and permissions are correct.
 ##
 
-- name: "configure | create new default log directory"
+- name: "configure : create new default log directory"
   ansible.builtin.file:
     path: "/var/log/apache2/default/archive"
     state: directory
@@ -35,7 +35,7 @@
   notify: restart Apache
   become: yes
 
-- name: "configure | update base log directory ownership and permissions"
+- name: "configure : update base log directory ownership and permissions"
   ansible.builtin.file:
     path: "/var/log/apache2"
     state: directory
@@ -44,7 +44,7 @@
     mode: 0750
   become: yes
 
-- name: "configure | build list of log directories"
+- name: "configure : build list of log directories"
   ansible.builtin.find:
     paths: "/var/log/apache2"
     hidden: yes
@@ -53,7 +53,7 @@
   register: __apache_log_directories
   become: yes
 
-- name: "configure | fix log directory permissions"
+- name: "configure : fix log directory permissions"
   ansible.builtin.file:
     path: "{{ item.path }}"
     mode: 0750
@@ -63,7 +63,7 @@
   when: __apache_log_directories.matched|int > 0
   become: yes
 
-- name: "configure | build list of log files"
+- name: "configure : build list of log files"
   ansible.builtin.find:
     paths: "/var/log/apache2"
     hidden: yes
@@ -72,7 +72,7 @@
   register: __apache_log_files
   become: yes
 
-- name: "configure | fix log file permissions"
+- name: "configure : fix log file permissions"
   ansible.builtin.file:
     path: "{{ item.path }}"
     mode: 0640
@@ -91,19 +91,19 @@
 #   - keep 1 year's worth of logs
 ##
 
-- name: "configure | install LogRotate"
+- name: "configure : install LogRotate"
   ansible.builtin.apt:
     name: "logrotate"
     state: present
   become: yes
 
-- name: "configure | remove default Apache LogRotate configuration"
+- name: "configure : remove default Apache LogRotate configuration"
   ansible.builtin.file:
     path: "/etc/logrotate.d/apache2"
     state: absent
   become: yes
 
-- name: "configure | define log rotation for default Apache logs"
+- name: "configure : define log rotation for default Apache logs"
   ansible.builtin.template:
     src: logrotate.j2
     dest: "/etc/logrotate.d/apache2-default"
@@ -120,7 +120,7 @@
 # Create a separate directory for rewrite rule config files. The files are
 # stored in subdirectories based on the virtual host they apply to.
 ##
-- name: "configure | add directory for rewrite rules"
+- name: "configure : add directory for rewrite rules"
   ansible.builtin.file:
     path: "/etc/apache2/rewrites"
     state: directory
@@ -129,7 +129,7 @@
     mode: 0775
   become: yes
 
-- name: "configure | provide rewrites readme"
+- name: "configure : provide rewrites readme"
   ansible.builtin.copy:
     src: rewrites-readme.txt
     dest: /etc/apache2/rewrites/_README
@@ -146,7 +146,7 @@
 # Use Ubuntu's method of managing virtual hosts
 # with available and enabled directories
 ##
-- name: "configure | create enabled virtual host directories"
+- name: "configure : create enabled virtual host directories"
   ansible.builtin.file:
     path: "/etc/apache2/sites-enabled"
     state: directory
@@ -155,7 +155,7 @@
     mode: 0755
   become: yes
 
-- name: "configure | provide enabled virtual hosts readme"
+- name: "configure : provide enabled virtual hosts readme"
   ansible.builtin.copy:
     src: "enabled-readme.txt"
     dest: "/etc/apache2/sites-enabled/_README"
@@ -164,7 +164,7 @@
     mode: 0444
   become: yes
 
-- name: "configure | create available virtual host directories"
+- name: "configure : create available virtual host directories"
   ansible.builtin.file:
     path: "/etc/apache2/sites-available"
     state: directory
@@ -173,7 +173,7 @@
     mode: 0775
   become: yes
 
-- name: "configure | provide available virtual hosts readme"
+- name: "configure : provide available virtual hosts readme"
   ansible.builtin.copy:
     src: "available-readme.txt"
     dest: "/etc/apache2/sites-available/_README"
@@ -192,7 +192,7 @@
 #
 # The files are stored in subdirectories based on the virtual host they apply to.
 ##
-- name: "configure | add directory for application configs"
+- name: "configure : add directory for application configs"
   ansible.builtin.file:
     path: "/etc/apache2/apps"
     state: directory
@@ -201,7 +201,7 @@
     mode: 0775
   become: yes
 
-- name: "configure | provide apps readme"
+- name: "configure : provide apps readme"
   ansible.builtin.copy:
     src: apps-readme.txt
     dest: /etc/apache2/apps/_README
@@ -218,7 +218,7 @@
 # Enable and disable some modules on Debian-based systems to match
 #  what is configured in httpd.conf on RedHat-based systems
 ##
-- name: "configure | disable unneeded modules"
+- name: "configure : disable unneeded modules"
   community.general.apache2_module:
     name: "{{ item }}"
     state: absent
@@ -228,7 +228,7 @@
   become: yes
   notify: restart Apache
 
-- name: "configure | enable needed modules"
+- name: "configure : enable needed modules"
   community.general.apache2_module:
     name: "{{ item }}"
     state: present
@@ -246,7 +246,7 @@
 # MAIN CONFIGURATION FILE
 ##
 
-- name: "configure | Apache configuration file"
+- name: "configure : Apache configuration file"
   ansible.builtin.template:
     src: apache2.conf.j2
     dest: /etc/apache2/apache2.conf
@@ -256,7 +256,7 @@
   register: _apache_conf_updated
   become: yes
 
-- name: "configure | Restart Apache"
+- name: "configure : Restart Apache"
   ansible.builtin.service:
     name: apache2
     state: restarted
@@ -276,7 +276,7 @@
 # Disables any additional configuration files as they are not used by the
 # Ansible-managed main configuration file.
 ##
-- name: "configure | remove additional config files"
+- name: "configure : remove additional config files"
   ansible.builtin.file:
     path: "/etc/apache2/{{ item }}"
     state: absent
@@ -286,7 +286,7 @@
   become: yes
   notify: restart Apache
 
-- name: "configure | disable sub-configuration files"
+- name: "configure : disable sub-configuration files"
   ansible.builtin.shell:
     argv:
       - a2disconf
@@ -307,7 +307,7 @@
 ##
 # REMOVE DEFAULT VIRTUAL HOSTS
 ##
-- name: "configure | disable default virtual hosts"
+- name: "configure : disable default virtual hosts"
   ansible.builtin.shell:
     argv:
       - a2dissite
@@ -321,7 +321,7 @@
     - default-ssl.conf
   become: yes
 
-- name: "configure | delete default virtual hosts"
+- name: "configure : delete default virtual hosts"
   ansible.builtin.file:
     path: "/etc/apache2/sites-available/{{ item }}"
     state: absent
@@ -338,7 +338,7 @@
 # LOG CLEAN UP
 ##
 
-- name: "configure | remove initial log files"
+- name: "configure : remove initial log files"
   ansible.builtin.file:
     path: "/var/log/apache2/{{ item }}"
     state: absent

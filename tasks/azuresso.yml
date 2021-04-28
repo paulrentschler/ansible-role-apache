@@ -10,22 +10,22 @@
 # these checks fail before a broken config can be created.
 ##
 
-- name: "azuresso | verify provider url specified"
+- name: "AzureSSO : verify provider url specified"
   ansible.builtin.fail:
     msg: "Must specify the OpenID Connect provider url with 'apache_azuresso_provider_url'"
   when: not apache_azuresso_provider_url
 
-- name: "azuresso | verify app id specified"
+- name: "AzureSSO : verify app id specified"
   ansible.builtin.fail:
     msg: "Must specify the app id with 'apache_azuresso_app_id'"
   when: not apache_azuresso_app_id
 
-- name: "azuresso | verify client secret specified"
+- name: "AzureSSO : verify client secret specified"
   ansible.builtin.fail:
     msg: "Must specify the client secret with 'apache_azuresso_client_secret'"
   when: not apache_azuresso_client_secret
 
-- name: "azuresso | verify passphrase specified"
+- name: "AzureSSO : verify passphrase specified"
   ansible.builtin.fail:
     msg: "Must specify the passphrase with 'apache_azuresso_passphrase'"
   when: not apache_azuresso_passphrase
@@ -35,7 +35,7 @@
 ##
 # Download and installation
 ##
-- name: "azuresso | create the src directory"
+- name: "AzureSSO : create the src directory"
   ansible.builtin.file:
     path: "/usr/local/src"
     state: directory
@@ -44,19 +44,19 @@
     mode: 0775
   become: yes
 
-- name: "azuresso | check for module installation"
+- name: "AzureSSO : check for module installation"
   ansible.builtin.stat:
     path: "/usr/lib/apache2/modules/mod_auth_openidc.so"
   register: _apache_azuresso_installed
 
-- name: "azuresso | download the DEB package"
+- name: "AzureSSO : download the DEB package"
   ansible.builtin.get_url:
     url: "https://github.com/zmartzone/mod_auth_openidc/releases/download/v{{ apache_azuresso_openidc_version }}/libapache2-mod-auth-openidc_{{ apache_azuresso_openidc_version }}-1.{{ ansible_distribution_release }}+1_amd64.deb"
     dest: /usr/local/src/
     mode: 0660
   when: not _apache_azuresso_installed.stat.exists
 
-- name: "azuresso | install the DEB package"
+- name: "AzureSSO : install the DEB package"
   ansible.builtin.apt:
     deb: "/usr/local/src/libapache2-mod-auth-openidc_{{ apache_azuresso_openidc_version }}-1.{{ ansible_distribution_release }}+1_amd64.deb"
   become: yes
@@ -68,14 +68,14 @@
 # Configuration
 ##
 
-- name: "azuresso | activate the OpenID module"
+- name: "AzureSSO : activate the OpenID module"
   community.general.apache2_module:
     name: auth_openidc
     state: present
   become: yes
   notify: restart Apache
 
-- name: "azuresso | add the OpenID configuration"
+- name: "AzureSSO : add the OpenID configuration"
   ansible.builtin.template:
     src: "auth_openidc.conf.j2"
     dest: "/etc/apache2/conf-available/auth_openidc.conf"
@@ -84,7 +84,7 @@
     mode: 0440
   become: yes
 
-- name: "azuresso | enable the OpenID configuration"
+- name: "AzureSSO : enable the OpenID configuration"
   ansible.builtin.file:
     src: "/etc/apache2/conf-available/auth_openidc.conf"
     dest: "/etc/apache2/conf-enabled/auth_openidc.conf"

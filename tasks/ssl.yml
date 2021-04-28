@@ -2,14 +2,14 @@
 # Enable SSL support for Apache
 
 
-- name: "ssl | enable mod_ssl"
+- name: "SSL : enable mod_ssl"
   community.general.apache2_module:
     name: ssl
     state: present
   become: yes
   notify: restart Apache
 
-- name: "ssl | update the SSL configuration file"
+- name: "SSL : update the SSL configuration file"
   ansible.builtin.template:
     src: "ssl.conf.j2"
     dest: "/etc/apache2/mods-available/ssl.conf"
