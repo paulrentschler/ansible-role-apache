@@ -210,7 +210,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "item.proxy_origins|default([])|length == 1"
+  when: "item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != ''"
 
 - name: "proxy | enable proxy_http module"
   community.general.apache2_module:
@@ -221,7 +221,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "item.proxy_origins|default([])|length == 1"
+  when: "item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != ''"
 
 - name: "proxy | enable proxy_balancer module"
   community.general.apache2_module:
