@@ -120,7 +120,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: item.use_ssl|bool
+  when: item.use_ssl|default('no')|bool and item.ssl_install_cert|default('yes')|bool
   tags:
     - apache_update_certs
 
@@ -136,7 +136,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: item.use_ssl|bool
+  when: item.use_ssl|default('no')|bool and item.ssl_install_cert|default('yes')|bool
   tags:
     - apache_update_certs
 
@@ -154,7 +154,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: item.use_ssl|bool and item.ssl_chain_cert
+  when: item.use_ssl|default('no')|bool and item.ssl_install_cert|default('yes')|bool and item.ssl_chain_cert
   tags:
     - apache_update_certs
 

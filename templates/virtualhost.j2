@@ -260,13 +260,14 @@
 
 
 {% if item.use_ssl|default('no')|bool %}
+{% set _comment = not item.ssl_install_cert|default('yes')|bool %}
     ###
     # Configure SSL
     ###
-        SSLEngine On
-        SSLCertificateFile {{ apache_ssl_path }}/{{ item.hostname }}.{{ item.domain }}.crt
-        SSLCertificateKeyFile {{ apache_ssl_privatekeys }}/{{ item.hostname }}.{{ item.domain }}.key
-{% if item.ssl_chain_cert %}
+        {% if _comment %}#{% endif %}SSLEngine On
+        {% if _comment %}#{% endif %}SSLCertificateFile {{ apache_ssl_path }}/{{ item.hostname }}.{{ item.domain }}.crt
+        {% if _comment %}#{% endif %}SSLCertificateKeyFile {{ apache_ssl_privatekeys }}/{{ item.hostname }}.{{ item.domain }}.key
+{% if item.ssl_chain_cert|default('') %}
         SSLCertificateChainFile {{ apache_ssl_path }}/{{ item.ssl_chain_cert }}
 {% endif %}
 {% endif %}

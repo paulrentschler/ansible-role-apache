@@ -24,6 +24,7 @@ apache_admin_email: ""
 #     use_azuresso: no           (default: no)
 #     redirect2ssl: no           (default: no)
 #     redirect2site: ""          (optional)
+#     ssl_install_cert: yes      (default: yes)
 #     ssl_intermediate_certs: []
 #     ssl_chain_cert: ""
 #     plone_site: Plone          (default: "")
