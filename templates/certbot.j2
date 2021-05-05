@@ -12,6 +12,10 @@
 # here.
 #
 
+# The Ubuntu package uses logrotate for greater flexibility,
+# disable the internal certbot logrotation.
+max-log-backups = 0
+
 # Use ECC for the private key
 #key-type = ecdsa
 #elliptic-curve = secp384r1

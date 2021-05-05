@@ -21,11 +21,27 @@
 # Installation
 ##
 
-- name: "Certbot : install certbot apache package"
+- name: "Certbot : install certbot with apache plugin"
   ansible.builtin.apt:
     name: python3-certbot-apache
     update_cache: yes
     state: latest
+  become: yes
+
+- name: "Certbot : disable systemd renewals"
+  ansible.builtin.service:
+    name: "certbot.timer"
+    state: stopped
+    enabled: no
+  become: yes
+
+- name: "Certbot : update log directory permissions"
+  ansible.builtin.file:
+    path: /var/log/letsencrypt
+    state: directory
+    owner: root
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0750
   become: yes
 
 
