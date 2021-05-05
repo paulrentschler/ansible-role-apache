@@ -1,0 +1,74 @@
+---
+# Install and configure Certbot to automatically handle SSL certificates
+
+
+##
+# Verify settings
+#
+# These settings are required but do not have default values so must be
+# specified somewhere. Without them a broken config will be created so
+# these checks fail before a broken config can be created.
+##
+
+- name: "Certbot : verify admin email specified"
+  ansible.builtin.fail:
+    msg: "Must specify the admin email address with 'apache_admin_email'"
+  when: not apache_admin_email
+
+
+
+##
+# Installation
+##
+
+- name: "Certbot : install certbot with apache plugin"
+  ansible.builtin.apt:
+    name: python3-certbot-apache
+    update_cache: yes
+    state: latest
+  become: yes
+
+- name: "Certbot : disable systemd renewals"
+  ansible.builtin.service:
+    name: "certbot.timer"
+    state: stopped
+    enabled: no
+  become: yes
+
+- name: "Certbot : update log directory permissions"
+  ansible.builtin.file:
+    path: /var/log/letsencrypt
+    state: directory
+    owner: root
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0750
+  become: yes
+
+
+
+##
+# Configuration
+##
+
+- name: "Certbot : configure certbot"
+  ansible.builtin.template:
+    src: certbot.j2
+    dest: "/etc/letsencrypt/cli.ini"
+    owner: root
+    group: root
+    mode: 0644
+  become: yes
+
+- name: "Certbot : schedule the certificate renewals"
+  ansible.builtin.template:
+    src: certbot.cron.j2
+    dest: "/etc/cron.d/certbot"
+    owner: root
+    group: root
+    mode: 0644
+  become: yes
+  tags:
+    - apache_certbot_cron
+    - apache_cron
+    - cron
+

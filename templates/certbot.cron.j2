@@ -1,0 +1,35 @@
+#
+# {{ ansible_managed }}
+#
+
+#
+# Renew SSL certificates via Certbot
+#
+
+#SHELL=/bin/sh
+#PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO={{ apache_certbot_schedule_mailto }}
+
+{% set min = apache_certbot_schedule_min %}
+{% set hr = apache_certbot_schedule_hour %}
+{% set day = apache_certbot_schedule_day %}
+{% set mon = apache_certbot_schedule_month %}
+{% set days = apache_certbot_schedule_days %}
+{% set user = apache_certbot_schedule_user %}
+{% if apache_certbot_schedule_enable|default('yes')|bool %}
+{% set enable = "" %}
+{% else %}
+{% set enable = "#" %}
+{% endif %}
+
+# Example of job definition:
+# .----------------- minute (0 - 59)
+# |   .------------- hour (0 - 23)
+# |   |  .---------- day of month (1 - 31)
+# |   |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |   |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |   |  |  |  |
+# *   *  *  *  *  username    command to be executed
+
+{{enable}} {{min}}  {{hr}}  {{day}}  {{mon}}  {{days}}  {{user}}    /usr/bin/certbot -q renew
+

@@ -120,7 +120,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: item.use_ssl|default('no')|bool and item.ssl_install_cert|default('yes')|bool
+  when: item.use_ssl|default('no')|bool and not item.ssl_certbot|default('no')|bool and item.ssl_install_cert|default('yes')|bool
   tags:
     - apache_update_certs
 
@@ -136,7 +136,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: item.use_ssl|default('no')|bool and item.ssl_install_cert|default('yes')|bool
+  when: item.use_ssl|default('no')|bool and not item.ssl_certbot|default('no')|bool and item.ssl_install_cert|default('yes')|bool
   tags:
     - apache_update_certs
 
@@ -154,9 +154,28 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: item.use_ssl|default('no')|bool and item.ssl_install_cert|default('yes')|bool and item.ssl_chain_cert
+  when: item.use_ssl|default('no')|bool and not item.ssl_certbot|default('no')|bool and item.ssl_install_cert|default('yes')|bool and item.ssl_chain_cert
   tags:
     - apache_update_certs
+
+
+- name: "Virtual host : ssl | create and install certificates using Certbot for Apache"
+  ansible.builtin.command:
+    argv:
+      - "certbot"
+      - "--apache"
+      - "certonly"
+      - "-d {{ item.hostname }}.{{ item.domain }}"
+      - "--noninteractive"
+  become: yes
+  notify: restart Apache
+  loop: "{{ apache_vhosts }}"
+  loop_control:
+    label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
+  when: item.use_ssl|default('no')|bool and item.ssl_certbot|default('no')|bool and not apache_certbot_dryrun|default('no')|bool
+  tags:
+    - apache_update_certs
+
 
 - name: "Virtual host : ssl : generate hashed aliases for certificates"
   ansible.builtin.command: "c_rehash {{ apache_ssl_path }}"
@@ -182,6 +201,8 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
+  tags:
+    - apache_update_certs
 
 - name: "Virtual host : vhost : enable the virtual host"
   ansible.builtin.shell:

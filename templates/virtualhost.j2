@@ -265,10 +265,15 @@
     # Configure SSL
     ###
         {% if _comment %}#{% endif %}SSLEngine On
+{% if item.ssl_certbot|default('no')|bool %}
+        SSLCertificateFile /etc/letsencrypt/live/{{ item.hostname }}.{{ item.domain }}/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/{{ item.hostname }}.{{ item.domain }}/privkey.pem
+{% else %}
         {% if _comment %}#{% endif %}SSLCertificateFile {{ apache_ssl_path }}/{{ item.hostname }}.{{ item.domain }}.crt
         {% if _comment %}#{% endif %}SSLCertificateKeyFile {{ apache_ssl_privatekeys }}/{{ item.hostname }}.{{ item.domain }}.key
 {% if item.ssl_chain_cert|default('') %}
         SSLCertificateChainFile {{ apache_ssl_path }}/{{ item.ssl_chain_cert }}
+{% endif %}
 {% endif %}
 {% endif %}
 
