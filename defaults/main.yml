@@ -73,6 +73,8 @@ apache_azuresso_large_claims: no
 # Certbot values
 ##
 
+apache_certbot_dryrun: no
+
 # When to renew the certificate(s) (Cron settings)
 apache_certbot_schedule_mailto: "root"
 apache_certbot_schedule_enable: yes
