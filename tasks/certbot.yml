@@ -68,7 +68,6 @@
     mode: 0644
   become: yes
   tags:
-    - apache_certbot_cron
     - apache_cron
     - cron
 
