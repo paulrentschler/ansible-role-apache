@@ -23,6 +23,11 @@
   when: "apache_use_ssl|default('yes')|bool"
   tags: always
 
+- name: Certbot support
+  include_tasks: certbot.yml
+  when: "apache_use_ssl|default('yes')|bool and apache_use_certbot|default('no')|bool"
+  tags: always
+
 - name: AzureSSO support
   include_tasks: azuresso.yml
   when: "apache_use_ssl|default('yes')|bool and apache_use_azuresso|default('no')|bool"
