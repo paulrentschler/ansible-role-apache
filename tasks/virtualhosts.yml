@@ -159,11 +159,18 @@
     - apache_update_certs
 
 
-- name: "Virtual host : ssl | create and install certificates using Certbot for Apache"
+- name: "Virtual host : ssl : stop apache"
+  ansible.builtin.service:
+    name: apache2
+    status: stopped
+  become: yes
+  when: apache_use_certbot|default('no')|bool
+
+- name: "Virtual host : ssl : create and install certificates using Certbot for Apache"
   ansible.builtin.command:
     argv:
       - "certbot"
-      - "--apache"
+      - "--standalone"
       - "certonly"
       - "-d {{ item.hostname }}.{{ item.domain }}"
       - "--noninteractive"
