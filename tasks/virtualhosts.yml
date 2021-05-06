@@ -162,7 +162,7 @@
 - name: "Virtual host : ssl : stop apache"
   ansible.builtin.service:
     name: apache2
-    status: stopped
+    state: stopped
   become: yes
   when: apache_use_certbot|default('no')|bool
 
