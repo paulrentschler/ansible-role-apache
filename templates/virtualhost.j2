@@ -67,7 +67,7 @@
     ###
         RewriteEngine On
 
-{% if item.use_ssl|default('no')|bool and item.redirect2ssl|default('no')|bool %}
+{% if not item.use_ssl|default('no')|bool and item.redirect2ssl|default('no')|bool %}
         # redirect all traffic to the SSL'ed site
         IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}/exclusions/rewrite2ssl-exclude_*.conf
         RewriteRule ^(.*) https://{{ item.hostname }}.{{ item.domain }}/$1     [R=permanent,NC,L]
