@@ -43,6 +43,11 @@
   when: "apache_use_wsgi|default('no')|bool"
   tags: always
 
+- name: uWSGI support
+  include_tasks: uwsgi.yml
+  when: "apache_use_uwsgi|default('no')|bool"
+  tags: always
+
 
 ##
 # Virtual hosts

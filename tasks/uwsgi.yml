@@ -1,0 +1,20 @@
+---
+# Enable uWSGI support for Apache
+
+
+- name: "uWSGI : install mod_uwsgi"
+  ansible.builtin.apt:
+    name: libapache2-mod-proxy-uwsgi
+    state: present
+  become: yes
+
+- name: "uWSGI : enable needed proxy modules"
+  community.general.apache2_module:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  notify: restart Apache
+  loop:
+    - proxy
+    - proxy_uwsgi
+
