@@ -23,6 +23,13 @@
 {% endif %}
 
 
+    ###
+    # Prevent the HTTP_PROXY vulnerability (http://httpoxy.com)
+    ###
+    <IfModule mod_headers.c>
+        RequestHeader unset Proxy
+    </IfModule>
+
 
 {% if item.use_ssl|default('no')|bool and item.use_azuresso|default('no')|bool %}
     ###
