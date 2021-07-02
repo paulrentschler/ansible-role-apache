@@ -66,6 +66,8 @@ apache_redirect_files: []
 apache_azuresso_openidc_version: "2.4.7"
 apache_azuresso_domain_hint: ""
 apache_azuresso_large_claims: no
+# default inactivity timeout is 1 hour
+apache_azuresso_inactivity_timeout: 3600
 
 
 

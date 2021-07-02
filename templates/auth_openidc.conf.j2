@@ -8,7 +8,7 @@
 
 OIDCProviderMetadataURL {{ apache_azuresso_provider_url }}
 OIDCSSLValidateServer Off
-OIDCSessionInactivityTimeout 3600
+OIDCSessionInactivityTimeout {{ apache_azuresso_inactivity_timeout }}
 
 OIDCRemoteUserClaim upn ^(.*)@
 OIDCScope "openid profile"
