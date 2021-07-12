@@ -85,7 +85,7 @@ apache_certbot_schedule_min: 0
 apache_certbot_schedule_month: "*"
 apache_certbot_schedule_day: "*"
 apache_certbot_schedule_days: "*"
-apache_certbot_schedule_user: "{{ devops_user|default(ansible_user) }}"
+apache_certbot_schedule_user: "{{ devops_user|default('root') }}"
 
 
 
