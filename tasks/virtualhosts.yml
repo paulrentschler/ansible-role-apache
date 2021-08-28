@@ -163,6 +163,7 @@
   ansible.builtin.service:
     name: apache2
     state: stopped
+  register: _apache_daemon_stopped
   become: yes
   when: apache_use_certbot|default('no')|bool
 
@@ -190,6 +191,13 @@
   tags:
     - apache_update_certs
 
+
+- name: "Virtual host : ssl : start apache"
+  ansible.builtin.service:
+    name: apache2
+    state: started
+  become: yes
+  when: apache_use_certbot|default('no')|bool and _apache_daemon_stopped is changed
 
 
 ##
