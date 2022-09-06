@@ -9,6 +9,12 @@
 OIDCProviderMetadataURL {{ apache_azuresso_provider_url }}
 OIDCSSLValidateServer Off
 OIDCSessionInactivityTimeout {{ apache_azuresso_inactivity_timeout }}
+{% if apache_azuresso_max_duration %}
+OIDCSessionMaxDuration {{ apache_azuresso_max_duration }}
+{%  endif %}
+{% if apache_azuresso_auth_request_params %}
+OIDCAuthRequestParams "{{ apache_azuresso_auth_request_params }}"
+{%  endif %}
 
 OIDCRemoteUserClaim upn ^(.*)@
 OIDCScope "openid profile"
@@ -24,4 +30,3 @@ OIDCCacheShmEntrySizeMax 21504
 OIDCClientID {{ apache_azuresso_app_id }}
 OIDCClientSecret "{{ apache_azuresso_client_secret }}"
 OIDCCryptoPassphrase "{{ apache_azuresso_passphrase }}"
-
