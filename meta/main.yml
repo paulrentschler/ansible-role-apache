@@ -4,10 +4,18 @@ dependencies: []
 galaxy_info:
   role_name: paulrentschler.apache
   author: Paul Rentschler
-  description: Install and configure Apache HTTP server on Ubuntu Linux
+  description: Install and configure Apache HTTP server on Linux
   license: license (MIT)
   min_ansible_version: 2.9
   platforms:
+    - name: RedHat
+      versions:
+        - 7
+        - 8
+    - name: CentOS
+      versions:
+        - 7
+        - 8
     - name: Ubuntu
       versions:
         - xenial

@@ -3,7 +3,9 @@ paulrentschler.apache
 
 [![MIT licensed][mit-badge]][mit-link]
 
-Installs and configures the Apache HTTP server on Ubuntu Linux.
+Installs and configures the Apache HTTP server on Ubuntu or RedHat Linux.
+
+RedHat/CentOS support is limited but should work for common situations.
 
 
 Requirements
