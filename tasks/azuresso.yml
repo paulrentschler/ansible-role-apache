@@ -44,23 +44,33 @@
     mode: 0775
   become: yes
 
-- name: "AzureSSO : check for module installation"
+- name: "AzureSSO : check for module installation (Debian)"
   ansible.builtin.stat:
     path: "/usr/lib/apache2/modules/mod_auth_openidc.so"
   register: _apache_azuresso_installed
+  when: ansible_os_family == "Debian"
 
-- name: "AzureSSO : download the DEB package"
+- name: "AzureSSO : download the DEB package (Debian)"
   ansible.builtin.get_url:
     url: "https://github.com/zmartzone/mod_auth_openidc/releases/download/v{{ apache_azuresso_openidc_version }}/libapache2-mod-auth-openidc_{{ apache_azuresso_openidc_version }}-1.{{ ansible_distribution_release }}+1_amd64.deb"
     dest: /usr/local/src/
     mode: 0660
-  when: not _apache_azuresso_installed.stat.exists
+  when: ansible_os_family == "Debian" and not _apache_azuresso_installed.stat.exists
 
-- name: "AzureSSO : install the DEB package"
+- name: "AzureSSO : install the DEB package (Debian)"
   ansible.builtin.apt:
     deb: "/usr/local/src/libapache2-mod-auth-openidc_{{ apache_azuresso_openidc_version }}-1.{{ ansible_distribution_release }}+1_amd64.deb"
   become: yes
-  when: not _apache_azuresso_installed.stat.exists
+  when: ansible_os_family == "Debian" and not _apache_azuresso_installed.stat.exists
+
+- name: "AzureSSO : install the RPM packages (RedHat)"
+  ansible.builtin.dnf:
+    package: "{{ item }}"
+  become: yes
+  loop:
+    - "https://github.com/zmartzone/mod_auth_openidc/releases/download/v2.4.0/cjose-0.6.1.5-2.el7.x86_64.rpm"
+    - "https://github.com/zmartzone/mod_auth_openidc/releases/download/v2.4.11.3/mod_auth_openidc-2.4.11.3-1.el7.x86_64.rpm"
+  when: ansible_os_family == "RedHat"
 
 
 
@@ -68,27 +78,29 @@
 # Configuration
 ##
 
-- name: "AzureSSO : activate the OpenID module"
+- name: "AzureSSO : activate the OpenID module (Debian)"
   community.general.apache2_module:
     name: auth_openidc
     state: present
   become: yes
+  when: ansible_os_family == "Debian"
   notify: restart Apache
 
 - name: "AzureSSO : add the OpenID configuration"
   ansible.builtin.template:
     src: "auth_openidc.conf.j2"
-    dest: "/etc/apache2/conf-available/auth_openidc.conf"
+    dest: "{{ apache_openidc_conf }}/etc/apache2/conf-available/auth_openidc.conf"
     owner: root
     group: "{{ apache_group }}"
     mode: 0440
   become: yes
 
-- name: "AzureSSO : enable the OpenID configuration"
+- name: "AzureSSO : enable the OpenID configuration (Debian)"
   ansible.builtin.file:
     src: "/etc/apache2/conf-available/auth_openidc.conf"
     dest: "/etc/apache2/conf-enabled/auth_openidc.conf"
     state: link
   become: yes
+  when: ansible_os_family == "Debian"
   notify: restart Apache
 
