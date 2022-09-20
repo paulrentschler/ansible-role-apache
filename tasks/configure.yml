@@ -226,6 +226,7 @@
     - cgid
     - status
   become: yes
+  when: ansible_os_family == "Debian"
   notify: restart Apache
 
 - name: "configure : enable needed modules"
@@ -238,6 +239,7 @@
     - rewrite
     - speling
   become: yes
+  when: ansible_os_family == "Debian"
   notify: restart Apache
 
 
@@ -249,7 +251,7 @@
 - name: "configure : Apache configuration file"
   ansible.builtin.template:
     src: apache2.conf.j2
-    dest: /etc/apache2/apache2.conf
+    dest: /etc/{{ apache_daemon }}/{{ apache_conf }}
     owner: root
     group: "{{ devops_group|default('adm') }}"
     mode: 0664
@@ -284,6 +286,26 @@
     - httpd.conf
     - ports.conf
   become: yes
+  when: ansible_os_family == "Debian"
+  notify: restart Apache
+
+- name: "configure : check for config directory"
+  ansible.builtin.stat:
+    path: "/etc/{{ apache_daemon }}/conf.d"
+  register: _confd_path
+
+- name: "configure : remove conf.d configuration files"
+  ansible.builtin.file:
+    path: "/etc/{{ apache_daemon }}/conf.d/{{ item }}"
+    state: absent
+  loop:
+    - welcome.conf
+    - charset
+    - localized-error-pages
+    - other-vhosts-access-log
+    - security
+  become: yes
+  when: confd_path.stat.isdir is defined and confd_path.stat.isdir == true
   notify: restart Apache
 
 - name: "configure : disable sub-configuration files"
@@ -300,6 +322,7 @@
     - "security.conf"
     - "serve-cgi-bin.conf"
   become: yes
+  when: ansible_os_family == "Debian"
   notify: restart Apache
 
 
@@ -307,21 +330,19 @@
 ##
 # REMOVE DEFAULT VIRTUAL HOSTS
 ##
-- name: "configure : disable default virtual hosts"
-  ansible.builtin.shell:
-    argv:
-      - a2dissite
-      - "{{ item }}"
-    chdir: "/etc/apache2/sites-available"
-    removes: "/etc/apache2/sites-enabled/{{ item }}"
+- name: "configure : disable default virtual hosts (Debian)"
+  ansible.builtin.file:
+    path: "/etc/apache2/sites-enabled/{{ item }}"
+    state: absent
   loop:
     - default
     - default-ssl
     - 000-default.conf
     - default-ssl.conf
   become: yes
+  when: ansible_os_family == "Debian"
 
-- name: "configure : delete default virtual hosts"
+- name: "configure : delete default virtual hosts (Debian)"
   ansible.builtin.file:
     path: "/etc/apache2/sites-available/{{ item }}"
     state: absent
@@ -331,6 +352,7 @@
     - 000-default.conf
     - default-ssl.conf
   become: yes
+  when: ansible_os_family == "Debian"
 
 
 
