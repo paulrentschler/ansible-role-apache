@@ -9,7 +9,7 @@
 
 - name: install Apache
   ansible.builtin.package:
-    name: "{{ apache daemon }}"
+    name: "{{ apache_daemon }}"
     state: present
   become: yes
 

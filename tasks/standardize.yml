@@ -17,6 +17,14 @@
   become: yes
   when: ansible_os_family == "RedHat"
 
+- name: "standardize : symlink for enabled conf directory (RedHat)"
+  ansible.builtin.file:
+    src: "/etc/{{ apache_daemon }}/conf.d"
+    dest: "/etc/{{ apache_daemon }}/conf-enabled"
+    state: "link"
+  become: yes
+  when: ansible_os_family == "RedHat"
+
 
 
 ##
@@ -58,7 +66,7 @@
 
 - name: "standardize : get the the group module files (RedHat)"
   ansible.builtin.find:
-    paths: "/etc/{{ ansible_daemon }}/conf.modules.d"
+    paths: "/etc/{{ apache_daemon }}/conf.modules.d"
     hidden: yes
     file_type: file
     recurse: yes
@@ -67,9 +75,12 @@
   when: ansible_os_family == "RedHat"
 
 - name: "standardize : disable unneed modules (RedHat)"
-  include: toggle-modules.yml filename={{ files_item }}
-  with_items: "{{ __apache_module_conf_files }}"
+  include_tasks: toggle-modules.yml
+  vars:
+    filename: "{{ files_item }}"
+  with_items: "{{ __apache_module_conf_files.files }}"
   loop_control:
+    label: "{{ files_item.path.split('/')[-1] }}"
     loop_var: files_item
   when: ansible_os_family == "RedHat"
 

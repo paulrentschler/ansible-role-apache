@@ -8,6 +8,7 @@ apache_magicfile: "/etc/apache2/magic"
 apache_daemon: "apache2"
 apache_conf: "apache2.conf"
 apache_apx_path: "/usr/bin/apxs2"
+apache_log_path: "/var/log/apache2"
 
 apache_sslcache: "${APACHE_RUN_DIR}/ssl_scache(512000)"
 apache_passphrasedialog: "exec:/usr/share/apache2/ask-for-passphrase"

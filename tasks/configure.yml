@@ -92,7 +92,7 @@
 ##
 
 - name: "configure : install LogRotate"
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name: "logrotate"
     state: present
   become: yes
@@ -258,9 +258,9 @@
   register: _apache_conf_updated
   become: yes
 
-- name: "configure : Restart Apache"
+- name: "configure : restart Apache"
   ansible.builtin.service:
-    name: apache2
+    name: "{{ apache_daemon }}"
     state: restarted
     enabled: true
   become: yes

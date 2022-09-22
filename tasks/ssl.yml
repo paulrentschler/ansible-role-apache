@@ -12,7 +12,7 @@
 
 - name: "SSL : install mod_ssl (RedHat)"
   ansible.builtin.dnf:
-    package: mod_ssl
+    name: mod_ssl
     state: present
   become: yes
   when: ansible_os_family == "RedHat"
