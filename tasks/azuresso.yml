@@ -65,7 +65,8 @@
 
 - name: "AzureSSO : install the RPM packages (RedHat)"
   ansible.builtin.dnf:
-    package: "{{ item }}"
+    name: "{{ item }}"
+    disable_gpg_check: yes
   become: yes
   loop:
     - "https://github.com/zmartzone/mod_auth_openidc/releases/download/v2.4.0/cjose-0.6.1.5-2.el7.x86_64.rpm"
@@ -89,7 +90,7 @@
 - name: "AzureSSO : add the OpenID configuration"
   ansible.builtin.template:
     src: "auth_openidc.conf.j2"
-    dest: "{{ apache_openidc_conf }}/etc/apache2/conf-available/auth_openidc.conf"
+    dest: "{{ apache_openidc_conf }}"
     owner: root
     group: "{{ apache_group }}"
     mode: 0440

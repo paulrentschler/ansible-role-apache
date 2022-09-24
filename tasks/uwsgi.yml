@@ -18,3 +18,13 @@
     - proxy_uwsgi
   become: yes
   notify: restart Apache
+
+- name: "uWSGI : enable the uWSGI proxy module (RedHat)"
+  ansible.builtin.lineinfile:
+    path: "/etc/{{ apache_daemon }}/conf.modules.d/00-proxy.conf"
+    regexp: >-
+      ^\s*#*\s*LoadModule proxy_uwsgi_module modules\/mod_proxy_uwsgi\.so$
+    line: "LoadModule proxy_uwsgi_module modules/mod_proxy_uwsgi.so"
+  when: ansible_os_family == "RedHat"
+  become: yes
+  notify: restart Apache

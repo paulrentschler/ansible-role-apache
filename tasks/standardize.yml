@@ -85,20 +85,6 @@
   when: ansible_os_family == "RedHat"
 
 
-  # modules not addressed but optionally needed
-
-    # - auth_openidc.conf
-    # - auth_openidc.load
-
-    # - proxy_uwsgi.load
-
-    # - ssl.conf
-    # - ssl.load
-
-    # - xml2enc.load -- needed for mod_proxy_http
-
-
-
 
 ##
 # VIRTUAL HOST MANAGEMENT
