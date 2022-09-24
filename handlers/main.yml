@@ -4,14 +4,14 @@
 
 - name: restart Apache
   ansible.builtin.service:
-    name: apache2
+    name: "{{ apache_daemon }}"
     state: restarted
     enabled: true
   become: yes
 
 - name: reload Apache
   ansible.builtin.service:
-    name: apache2
+    name: "{{ apache_daemon }}"
     state: reloaded
     enabled: true
   become: yes

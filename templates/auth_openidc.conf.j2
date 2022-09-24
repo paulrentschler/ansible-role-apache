@@ -9,20 +9,20 @@
 OIDCProviderMetadataURL {{ apache_azuresso_provider_url }}
 OIDCSSLValidateServer Off
 OIDCSessionInactivityTimeout {{ apache_azuresso_inactivity_timeout }}
-{% if apache_azuresso_max_duration %}
+{% if apache_azuresso_max_duration|default('') %}
 OIDCSessionMaxDuration {{ apache_azuresso_max_duration }}
 {%  endif %}
-{% if apache_azuresso_auth_request_params %}
+{% if apache_azuresso_auth_request_params|default('') %}
 OIDCAuthRequestParams "{{ apache_azuresso_auth_request_params }}"
 {%  endif %}
 
 OIDCRemoteUserClaim upn ^(.*)@
 OIDCScope "openid profile"
-{% if apache_azuresso_domain_hint %}
+{% if apache_azuresso_domain_hint|default('') %}
 # Next skips "Sign In" window:
 OIDCPathAuthRequestParams "domain_hint={{ apache_azuresso_domain_hint }}"
 {% endif %}
-{% if apache_azuresso_large_claims|bool %}
+{% if apache_azuresso_large_claims|default('no')|bool %}
 # Next needed if many claims or a large one (e.g., group list) are being sent:
 OIDCCacheShmEntrySizeMax 21504
 {% endif %}

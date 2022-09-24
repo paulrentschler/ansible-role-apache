@@ -1,0 +1,24 @@
+---
+# Apache variables for Debian-based systems
+
+apache_user: "www-data"
+apache_group: "www-data"
+# apache_pidfile: "${APACHE_PID_FILE}"
+apache_magicfile: "/etc/apache2/magic"
+apache_daemon: "apache2"
+apache_conf: "apache2.conf"
+apache_apx_path: "/usr/bin/apxs2"
+apache_log_path: "/var/log/apache2"
+
+apache_sslcache: "${APACHE_RUN_DIR}/ssl_scache(512000)"
+apache_passphrasedialog: "exec:/usr/share/apache2/ask-for-passphrase"
+apache_sslmutex: "file:${APACHE_RUN_DIR}/ssl_mutex"
+apache_ssl_conf: "/etc/apache2/mods-available/ssl.conf"
+apache_ssl_path: "/etc/apache2/ssl"
+apache_ssl_privatekeys: "/etc/apache2/ssl"
+
+# apache_cosign_module: "/usr/lib/apache2/modules/mod_cosign.so"
+
+apache_openidc_conf: "/etc/apache2/conf-available/auth_openidc.conf"
+
+apache_uwsgi_proxy_package: "libapache2-mod-proxy-uwsgi"

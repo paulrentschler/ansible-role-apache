@@ -1,0 +1,24 @@
+---
+# Apache variables for RedHat-based systems
+
+apache_user: "apache"
+apache_group: "apache"
+# apache_pidfile: "/var/run/httpd/httpd.pid"
+apache_magicfile: "/etc/httpd/conf/magic"
+apache_daemon: "httpd"
+apache_conf: "conf/httpd.conf"
+apache_apx_path: "/usr/sbin/apxs"
+apache_log_path: "/var/log/httpd"
+
+apache_sslcache: "/var/cache/mod_ssl/scache(512000)"
+apache_passphrasedialog: "builtin"
+apache_sslmutex: "default"
+apache_ssl_conf: "/etc/httpd/conf.d/ssl.conf"
+apache_ssl_path: "/etc/pki/tls/certs"
+apache_ssl_privatekeys: "/etc/pki/tls/private"
+
+# apache_cosign_module: "/usr/lib64/httpd/modules/mod_cosign.so"
+
+apache_openidc_conf: "/etc/httpd/conf.d/openidc.conf"
+
+apache_uwsgi_proxy_package: "mod_proxy_uwsgi"

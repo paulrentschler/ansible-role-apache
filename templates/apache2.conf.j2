@@ -28,17 +28,17 @@ TraceEnable Off
 #
 # Do NOT add a slash at the end of the directory path.
 #
-#ServerRoot "/etc/apache2"
+ServerRoot "/etc/{{ apache_daemon }}"
 
 #
 # The accept serialization lock file MUST BE STORED ON A LOCAL DISK.
 #
 #Mutex file:/var/lock/apache2 default
 
+{% if ansible_os_family == 'Debian' %}
 #
 # The directory where shm and other runtime files will be stored.
 #
-
 DefaultRuntimeDir ${APACHE_RUN_DIR}
 
 #
@@ -49,10 +49,11 @@ DefaultRuntimeDir ${APACHE_RUN_DIR}
 #
 PidFile ${APACHE_PID_FILE}
 
+{% endif %}
 #
 # Timeout: The number of seconds before receives and sends time out.
 #
-Timeout 300
+TimeOut 300
 
 #
 # KeepAlive: Whether or not to allow persistent connections (more than
@@ -116,8 +117,8 @@ KeepAliveTimeout 5
 #
 # Dynamic Shared Object (DSO) Support
 #
-Include mods-enabled/*.load
-Include mods-enabled/*.conf
+IncludeOptional mods-enabled/*.load
+IncludeOptional mods-enabled/*.conf
 
 
 #
@@ -180,7 +181,7 @@ UseCanonicalName Off
 #
 <Directory />
     Options -Indexes +FollowSymLinks -Includes -ExecCGI
-    AllowOverride None
+    AllowOverride none
     Require all denied
 </Directory>
 
@@ -224,28 +225,58 @@ AccessFileName .htaccess
     Require all denied
 </DirectoryMatch>
 
-#
-# TypesConfig describes where the mime.types file (or equivalent) is
-# to be found.
-#
-TypesConfig /etc/mime.types
+<IfModule mime_module>
+    #
+    # TypesConfig describes where the mime.types file (or equivalent) is
+    # to be found.
+    #
+    TypesConfig /etc/mime.types
+
+    #
+    # DefaultType is the default MIME type the server will use for a document
+    # if it cannot otherwise determine one, such as from filename extensions.
+    #
+    # "text/plain" is good if the server is mostly text or HTML documents.
+    # "application/octet-stream" is good if the server is mostly binary content.
+    # "None" allows the client's browser to guess an appropriate action.
+    #
+    DefaultType None
+
+    #
+    # MIME-types for compressed files
+    #
+    AddType application/x-compress .Z
+    AddType application/x-gzip     .gz .tgz
+
+    #
+    # MIME-types for downloading Certificates and CRLs
+    #
+    AddType application/x-x509-ca-cert .crt
+    AddType application/x-pkcs7-crl    .crl
+
+    #
+    # Parse .shtml files for server-side includes (SSI)
+    # "Includes" needs to be added to the "Options" directive
+    #
+    AddType text/html .shtml
+    AddOutputFilter INCLUDES .shtml
+</IfModule>
 
 #
-# DefaultType is the default MIME type the server will use for a document
-# if it cannot otherwise determine one, such as from filename extensions.
+# Specify a default charset for all content served; this enables
+# interpretation of all content as UTF-8 by default.  To use the
+# default browser choice (ISO-8859-1), or to allow the META tags
+# in HTML content to override this choice, comment out this
+# directive:
 #
-# "text/plain" is good if the server is mostly text or HTML documents.
-# "application/octet-stream" is good if the server is mostly binary content.
-# "None" allows the client's browser to guess an appropriate action.
-#
-DefaultType None
+AddDefaultCharset UTF-8
 
-#
-# The mod_mime_magic module allows the server to use various hints from the
-# contents of the file itself to determine its type.  The MIMEMagicFile
-# directive tells the module where the hint definitions are located.
-#
 <IfModule mod_mime_magic.c>
+    #
+    # The mod_mime_magic module allows the server to use various hints from the
+    # contents of the file itself to determine its type.  The MIMEMagicFile
+    # directive tells the module where the hint definitions are located.
+    #
     MIMEMagicFile {{ apache_magicfile }}
 </IfModule>
 
@@ -277,7 +308,7 @@ HostnameLookups Off
 #
 # Location of the error log file
 #
-ErrorLog ${APACHE_LOG_DIR}/default/error.log
+ErrorLog {{ apache_log_path }}/default/error.log
 
 #
 # LogLevel: Control the number of messages logged to the error_log
@@ -296,7 +327,7 @@ LogFormat "%{User-agent}i" agent
 #
 # Single access log file with access, agent, and referer information
 #
-CustomLog ${APACHE_LOG_DIR}/default/access.log combined
+CustomLog {{ apache_log_path }}/default/access.log combined
 
 
 #
@@ -306,25 +337,6 @@ CustomLog ${APACHE_LOG_DIR}/default/access.log combined
     # Location of the WebDAV lock database.
     DAVLockDB /var/lib/dav/lockdb
 </IfModule>
-
-#
-# MIME-types for compressed files
-#
-AddType application/x-compress .Z
-AddType application/x-gzip     .gz .tgz
-
-#
-# MIME-types for downloading Certificates and CRLs
-#
-AddType application/x-x509-ca-cert .crt
-AddType application/x-pkcs7-crl    .crl
-
-#
-# Parse .shtml files for server-side includes (SSI)
-# "Includes" needs to be added to the "Options" directive
-#
-AddType text/html .shtml
-AddOutputFilter INCLUDES .shtml
 
 #
 # Modify normal HTTP response behavior to handle known

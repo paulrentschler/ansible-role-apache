@@ -2,19 +2,29 @@
 # Enable uWSGI support for Apache
 
 
-- name: "uWSGI : install mod_uwsgi"
-  ansible.builtin.apt:
-    name: libapache2-mod-proxy-uwsgi
+- name: "uWSGI : install uWSGI proxy"
+  ansible.builtin.package:
+    name: "{{ apache_uwsgi_proxy_package }}"
     state: present
   become: yes
 
-- name: "uWSGI : enable needed proxy modules"
+- name: "uWSGI : enable needed proxy modules (Debian)"
   community.general.apache2_module:
     name: "{{ item }}"
     state: present
-  become: yes
-  notify: restart Apache
+  when: ansible_os_family == "Debian"
   loop:
     - proxy
     - proxy_uwsgi
+  become: yes
+  notify: restart Apache
 
+- name: "uWSGI : enable the uWSGI proxy module (RedHat)"
+  ansible.builtin.lineinfile:
+    path: "/etc/{{ apache_daemon }}/conf.modules.d/00-proxy.conf"
+    regexp: >-
+      ^\s*#*\s*LoadModule proxy_uwsgi_module modules\/mod_proxy_uwsgi\.so$
+    line: "LoadModule proxy_uwsgi_module modules/mod_proxy_uwsgi.so"
+  when: ansible_os_family == "RedHat"
+  become: yes
+  notify: restart Apache

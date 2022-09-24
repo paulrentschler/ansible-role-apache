@@ -161,7 +161,7 @@
 
 - name: "Virtual host : ssl : stop apache"
   ansible.builtin.service:
-    name: apache2
+    name: "{{ apache_daemon }}"
     state: stopped
   register: _apache_daemon_stopped
   become: yes
@@ -217,7 +217,7 @@
 
 - name: "Virtual host : ssl : start apache"
   ansible.builtin.service:
-    name: apache2
+    name: "{{ apache_daemon }}"
     state: started
   become: yes
   when: apache_use_certbot|default('no')|bool and _apache_daemon_stopped is changed
@@ -243,10 +243,14 @@
     - apache_update_certs
 
 - name: "Virtual host : vhost : enable the virtual host"
-  ansible.builtin.shell:
-    cmd: "a2ensite {{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-    chdir: "/etc/apache2/sites-available"
-    creates: "/etc/apache2/sites-enabled/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}.conf"
+  ansible.builtin.file:
+    src: "/etc/apache2/sites-available/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}.conf"
+    dest: "/etc/apache2/sites-enabled/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}.conf"
+    state: "link"
+  # ansible.builtin.shell:
+  #   cmd: "a2ensite {{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
+  #   chdir: "/etc/apache2/sites-available"
+  #   creates: "/etc/apache2/sites-enabled/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}.conf"
   become: yes
   notify: reload Apache
   loop: "{{ apache_vhosts }}"
@@ -260,7 +264,7 @@
 # PROXYING
 ##
 
-- name: "Virtual host : proxy : enable proxy module"
+- name: "Virtual host : proxy : enable proxy module (Debian)"
   community.general.apache2_module:
     name: proxy
     state: present
@@ -269,9 +273,9 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != ''"
+  when: "ansible_os_family == 'Debian' and (item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != '')"
 
-- name: "Virtual host : proxy : enable proxy_http module"
+- name: "Virtual host : proxy : enable proxy_http module (Debian)"
   community.general.apache2_module:
     name: proxy_http
     state: present
@@ -280,9 +284,9 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != ''"
+  when: "ansible_os_family == 'Debian' and (item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != '')"
 
-- name: "Virtual host : proxy : enable proxy_balancer module"
+- name: "Virtual host : proxy : enable proxy_balancer module (Debian)"
   community.general.apache2_module:
     name: proxy_balancer
     state: present
@@ -291,9 +295,9 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "item.proxy_origins|default([])|length > 1"
+  when: "ansible_os_family == 'Debian' and item.proxy_origins|default([])|length > 1"
 
-- name: "Virtual host : proxy : enable lbmethod_byrequests module"
+- name: "Virtual host : proxy : enable lbmethod_byrequests module (Debian)"
   community.general.apache2_module:
     name: lbmethod_byrequests
     state: present
@@ -302,5 +306,5 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "item.proxy_origins|default([])|length > 1"
+  when: "ansible_os_family == 'Debian' and item.proxy_origins|default([])|length > 1"
 

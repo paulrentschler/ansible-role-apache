@@ -1,0 +1,120 @@
+---
+# Update the standard RedHat installation to be more like
+# the standard Ubuntu installation which is more flexible to configure
+#
+
+
+##
+# CONFIG PATH
+#
+# Use Ubuntu's directory naming convention of /etc/apache2
+##
+- name: "standardize : fix apache config directory (RedHat)"
+  ansible.builtin.file:
+    src: "/etc/httpd"
+    dest: "/etc/apache2"
+    state: "link"
+  become: yes
+  when: ansible_os_family == "RedHat"
+
+- name: "standardize : symlink for enabled conf directory (RedHat)"
+  ansible.builtin.file:
+    src: "/etc/{{ apache_daemon }}/conf.d"
+    dest: "/etc/{{ apache_daemon }}/conf-enabled"
+    state: "link"
+  become: yes
+  when: ansible_os_family == "RedHat"
+
+
+
+##
+# LOGS
+#
+# Use Ubuntu's log directory naming convention of /var/log/apache2
+##
+- name: "standardize : standardize log directories (RedHat)"
+  ansible.builtin.file:
+    src: "/var/log/httpd"
+    dest: "/var/log/apache2"
+    state: "link"
+  become: yes
+  when: ansible_os_family == "RedHat"
+
+- name: "standardize : create symlink to logs (Debian)"
+  ansible.builtin.file:
+    src: "/var/log/apache2"
+    dest: "/etc/apache2/logs"
+    state: "link"
+  become: yes
+  when: ansible_os_family == "Debian"
+
+
+
+##
+# MODULE MANAGEMENT
+#
+# Create "available" and "enabled" directories along with individual
+# files to load each module rather than files that load groups of modules
+##
+- name: "standardize : symlink for enabled modules directory (RedHat)"
+  ansible.builtin.file:
+    src: "/etc/{{ apache_daemon }}/conf.modules.d"
+    dest: "/etc/{{ apache_daemon }}/mods-enabled"
+    state: "link"
+  become: yes
+  when: ansible_os_family == "RedHat"
+
+- name: "standardize : get the the group module files (RedHat)"
+  ansible.builtin.find:
+    paths: "/etc/{{ apache_daemon }}/conf.modules.d"
+    hidden: yes
+    file_type: file
+    recurse: yes
+  register: __apache_module_conf_files
+  become: yes
+  when: ansible_os_family == "RedHat"
+
+- name: "standardize : disable unneed modules (RedHat)"
+  include_tasks: toggle-modules.yml
+  vars:
+    filename: "{{ files_item }}"
+  with_items: "{{ __apache_module_conf_files.files }}"
+  loop_control:
+    label: "{{ files_item.path.split('/')[-1] }}"
+    loop_var: files_item
+  when: ansible_os_family == "RedHat"
+
+
+
+##
+# VIRTUAL HOST MANAGEMENT
+#
+# Install a version of the Ubuntu a2* scripts
+#  for activating/deactivating virtual hosts
+##
+# - name: "standardize : install ApacheManage script (RedHat)"
+#   ansible.builtin.git:
+#     repo: "https://github.com/paulrentschler/apachemanage.git"
+#     dest: "/usr/local/scripts/apachemanage"
+#     accept_hostkey: yes
+#   become: yes
+#   when: ansible_os_family == "RedHat"
+#   ignore_errors: yes
+
+# - name: "standardize : create a2ensite link (RedHat)"
+#   ansible.builtin.file:
+#     src: "/usr/local/scripts/apachemanage/a2manage"
+#     dest: "/usr/sbin/a2ensite"
+#     state: "link"
+#   become: yes
+#   when: ansible_os_family == "RedHat"
+#   ignore_errors: yes
+
+# - name: "standardize : create a2dissite link (RedHat)"
+#   ansible.builtin.file:
+#     src: "/usr/local/scripts/apachemanage/a2manage"
+#     dest: "/usr/sbin/a2dissite"
+#     state: "link"
+#   become: yes
+#   when: ansible_os_family == "RedHat"
+#   ignore_errors: yes

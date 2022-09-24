@@ -2,20 +2,43 @@
 # Enable SSL support for Apache
 
 
-- name: "SSL : enable mod_ssl"
+- name: "SSL : enable mod_ssl (Debian)"
   community.general.apache2_module:
     name: ssl
     state: present
   become: yes
+  when: ansible_os_family == "Debian"
   notify: restart Apache
+
+- name: "SSL : install mod_ssl (RedHat)"
+  ansible.builtin.dnf:
+    name: mod_ssl
+    state: present
+  become: yes
+  when: ansible_os_family == "RedHat"
+  notify: restart Apache
+
+- name: "SSL : install certificate rehash script (RedHat)"
+  ansible.builtin.dnf:
+    name: openssl-perl
+    state: present
+  become: yes
+  when: ansible_os_family == "RedHat"
 
 - name: "SSL : update the SSL configuration file"
   ansible.builtin.template:
     src: "ssl.conf.j2"
-    dest: "/etc/apache2/mods-available/ssl.conf"
+    dest: "{{ apache_ssl_conf }}"
     owner: root
-    group: root
-    mode: 0644
+    group: "{{ devops_group|default('adm') }}"
+    mode: 0664
   become: yes
   notify: restart Apache
 
+- name: "SSL : create SSL directory symlink (RedHat)"
+  ansible.builtin.file:
+    src: "{{ apache_ssl_path }}"
+    dest: "/etc/apache2/ssl"
+    state: "link"
+  become: yes
+  when: ansible_os_family == "RedHat"
