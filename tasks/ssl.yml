@@ -18,6 +18,13 @@
   when: ansible_os_family == "RedHat"
   notify: restart Apache
 
+- name: "SSL : install certificate rehash script (RedHat)"
+  ansible.builtin.dnf:
+    name: openssl-perl
+    state: present
+  become: yes
+  when: ansible_os_family == "RedHat"
+
 - name: "SSL : update the SSL configuration file"
   ansible.builtin.template:
     src: "ssl.conf.j2"

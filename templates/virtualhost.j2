@@ -255,13 +255,13 @@
         #LogLevel info rewrite:trace5
 
 {% if item.use_ssl|default('no')|bool %}
-        CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl-access.log combined
-        ErrorLog  ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl-error.log
-        CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/ssl.log \
+        CustomLog {{ apache_log_path }}/{{ item.domain }}/{{ item.hostname }}/ssl-access.log combined
+        ErrorLog  {{ apache_log_path }}/{{ item.domain }}/{{ item.hostname }}/ssl-error.log
+        CustomLog {{ apache_log_path }}/{{ item.domain }}/{{ item.hostname }}/ssl.log \
             "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
 {% else %}
-        CustomLog ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/access.log combined
-        ErrorLog  ${APACHE_LOG_DIR}/{{ item.domain }}/{{ item.hostname }}/error.log
+        CustomLog {{ apache_log_path }}/{{ item.domain }}/{{ item.hostname }}/access.log combined
+        ErrorLog  {{ apache_log_path }}/{{ item.domain }}/{{ item.hostname }}/error.log
 {% endif %}
 
 

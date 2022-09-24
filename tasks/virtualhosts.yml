@@ -244,8 +244,8 @@
 
 - name: "Virtual host : vhost : enable the virtual host"
   ansible.builtin.file:
-    src: "/etc/apache2/sites-available/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-    dest: "/etc/apache2/sites-enabled/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
+    src: "/etc/apache2/sites-available/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}.conf"
+    dest: "/etc/apache2/sites-enabled/{{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}.conf"
     state: "link"
   # ansible.builtin.shell:
   #   cmd: "a2ensite {{ item.priority }}-{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
@@ -273,7 +273,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "ansible_os_family = 'Debian' and (item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != '')"
+  when: "ansible_os_family == 'Debian' and (item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != '')"
 
 - name: "Virtual host : proxy : enable proxy_http module (Debian)"
   community.general.apache2_module:
@@ -284,7 +284,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "ansible_os_family = 'Debian' and (item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != '')"
+  when: "ansible_os_family == 'Debian' and (item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != '')"
 
 - name: "Virtual host : proxy : enable proxy_balancer module (Debian)"
   community.general.apache2_module:
@@ -295,7 +295,7 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "ansible_os_family = 'Debian' and item.proxy_origins|default([])|length > 1"
+  when: "ansible_os_family == 'Debian' and item.proxy_origins|default([])|length > 1"
 
 - name: "Virtual host : proxy : enable lbmethod_byrequests module (Debian)"
   community.general.apache2_module:
@@ -306,5 +306,5 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
-  when: "ansible_os_family = 'Debian' and item.proxy_origins|default([])|length > 1"
+  when: "ansible_os_family == 'Debian' and item.proxy_origins|default([])|length > 1"
 
