@@ -99,7 +99,7 @@
 
 - name: "configure : remove default Apache LogRotate configuration"
   ansible.builtin.file:
-    path: "/etc/logrotate.d/apache2"
+    path: "/etc/logrotate.d/{{ apache_daemon }}"
     state: absent
   become: yes
 
@@ -308,7 +308,7 @@
   when: confd_path.stat.isdir is defined and confd_path.stat.isdir == true
   notify: restart Apache
 
-- name: "configure : disable sub-configuration files"
+- name: "configure : disable sub-configuration files (Debian)"
   ansible.builtin.shell:
     argv:
       - a2disconf
