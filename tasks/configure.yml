@@ -234,6 +234,7 @@
     name: "{{ item }}"
     state: present
   loop:
+    - expires
     - headers
     - mime_magic
     - rewrite
