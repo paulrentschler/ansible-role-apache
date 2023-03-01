@@ -191,11 +191,6 @@
         ###
         # Directory access and configuration for AzureSSO
         ###
-            <Location /valid>
-                AuthType openid-connect
-                Require valid-user
-            </Location>
-
             <Directory />
                 Options -Indexes +FollowSymLinks -Includes -ExecCGI
                 AllowOverride None
@@ -204,6 +199,16 @@
                 # Configure access restrictions
                 AuthType openid-connect
                 Require valid-user
+            </Location>
+
+            <Location /valid>
+                AuthType openid-connect
+                Require valid-user
+            </Location>
+
+            <Location /favicon.ico>
+                AuthType none
+                Require all granted
             </Location>
 {% endif %}
 
@@ -224,6 +229,11 @@
             <Location /cosign/valid>
                 SetHandler          cosign
                 CosignProtected     Off
+                Require all granted
+            </Location>
+
+            <Location /favicon.ico>
+                AuthType none
                 Require all granted
             </Location>
 {% endif %}
