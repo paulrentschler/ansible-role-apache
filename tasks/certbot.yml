@@ -14,6 +14,8 @@
   ansible.builtin.fail:
     msg: "Must specify the admin email address with 'apache_admin_email'"
   when: not apache_admin_email
+  tags:
+    - apache_modules
 
 
 
@@ -27,6 +29,8 @@
     update_cache: yes
     state: latest
   become: yes
+  tags:
+    - apache_modules
 
 - name: "Certbot : disable systemd renewals"
   ansible.builtin.service:
@@ -34,6 +38,8 @@
     state: stopped
     enabled: no
   become: yes
+  tags:
+    - apache_modules
 
 - name: "Certbot : update log directory permissions"
   ansible.builtin.file:
@@ -43,6 +49,8 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0750
   become: yes
+  tags:
+    - apache_modules
 
 
 
@@ -58,6 +66,9 @@
     group: root
     mode: 0644
   become: yes
+  tags:
+    - apache_config
+    - apache_modules
 
 - name: "Certbot : schedule the certificate renewals"
   ansible.builtin.template:
@@ -69,5 +80,6 @@
   become: yes
   tags:
     - apache_cron
+    - apache_modules
     - cron
 

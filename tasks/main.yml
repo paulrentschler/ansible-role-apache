@@ -84,4 +84,5 @@
   notify: reload Apache
   tags:
     - apache_redirects
+    - apache_vhosts
 

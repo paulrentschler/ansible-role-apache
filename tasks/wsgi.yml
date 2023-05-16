@@ -7,4 +7,5 @@
     name: libapache2-mod-wsgi
     state: present
   become: yes
-
+  tags:
+    - apache_modules

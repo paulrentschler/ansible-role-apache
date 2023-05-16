@@ -9,6 +9,8 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify: restart Apache
+  tags:
+    - apache_modules
 
 - name: "SSL : install mod_ssl (RedHat)"
   ansible.builtin.dnf:
@@ -17,6 +19,8 @@
   become: yes
   when: ansible_os_family == "RedHat"
   notify: restart Apache
+  tags:
+    - apache_modules
 
 - name: "SSL : install certificate rehash script (RedHat)"
   ansible.builtin.dnf:
@@ -24,6 +28,9 @@
     state: present
   become: yes
   when: ansible_os_family == "RedHat"
+  tags:
+    - apache_config
+    - apache_modules
 
 - name: "SSL : update the SSL configuration file"
   ansible.builtin.template:
@@ -34,6 +41,9 @@
     mode: 0664
   become: yes
   notify: restart Apache
+  tags:
+    - apache_config
+    - apache_modules
 
 - name: "SSL : create SSL directory symlink (RedHat)"
   ansible.builtin.file:
@@ -42,3 +52,6 @@
     state: "link"
   become: yes
   when: ansible_os_family == "RedHat"
+  tags:
+    - apache_config
+    - apache_modules

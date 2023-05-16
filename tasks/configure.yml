@@ -14,6 +14,8 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0775
   become: yes
+  tags:
+    - apache_config
 
 
 
@@ -34,6 +36,8 @@
     mode: 0750
   notify: restart Apache
   become: yes
+  tags:
+    - apache_config
 
 - name: "configure : update base log directory ownership and permissions"
   ansible.builtin.file:
@@ -43,6 +47,8 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0750
   become: yes
+  tags:
+    - apache_config
 
 - name: "configure : build list of log directories"
   ansible.builtin.find:
@@ -52,6 +58,8 @@
     recurse: yes
   register: __apache_log_directories
   become: yes
+  tags:
+    - apache_config
 
 - name: "configure : fix log directory permissions"
   ansible.builtin.file:
@@ -62,6 +70,8 @@
     label: "{{ item.path }}"
   when: __apache_log_directories.matched|int > 0
   become: yes
+  tags:
+    - apache_config
 
 - name: "configure : build list of log files"
   ansible.builtin.find:
@@ -71,6 +81,8 @@
     recurse: yes
   register: __apache_log_files
   become: yes
+  tags:
+    - apache_config
 
 - name: "configure : fix log file permissions"
   ansible.builtin.file:
@@ -81,6 +93,8 @@
     label: "{{ item.path }}"
   when: __apache_log_files.matched|int > 0
   become: yes
+  tags:
+    - apache_config
 
 
 
@@ -96,12 +110,16 @@
     name: "logrotate"
     state: present
   become: yes
+  tags:
+    - apache_config
 
 - name: "configure : remove default Apache LogRotate configuration"
   ansible.builtin.file:
     path: "/etc/logrotate.d/{{ apache_daemon }}"
     state: absent
   become: yes
+  tags:
+    - apache_config
 
 - name: "configure : define log rotation for default Apache logs"
   ansible.builtin.template:
@@ -111,6 +129,8 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0644
   become: yes
+  tags:
+    - apache_config
 
 
 
@@ -128,6 +148,9 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0775
   become: yes
+  tags:
+    - apache_config
+    - apache_vhosts
 
 - name: "configure : provide rewrites readme"
   ansible.builtin.copy:
@@ -137,6 +160,9 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0444
   become: yes
+  tags:
+    - apache_config
+    - apache_vhosts
 
 
 
@@ -154,6 +180,9 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0755
   become: yes
+  tags:
+    - apache_config
+    - apache_vhosts
 
 - name: "configure : provide enabled virtual hosts readme"
   ansible.builtin.copy:
@@ -163,6 +192,9 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0444
   become: yes
+  tags:
+    - apache_config
+    - apache_vhosts
 
 - name: "configure : create available virtual host directories"
   ansible.builtin.file:
@@ -172,6 +204,9 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0775
   become: yes
+  tags:
+    - apache_config
+    - apache_vhosts
 
 - name: "configure : provide available virtual hosts readme"
   ansible.builtin.copy:
@@ -181,6 +216,9 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0444
   become: yes
+  tags:
+    - apache_config
+    - apache_vhosts
 
 
 
@@ -200,6 +238,9 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0775
   become: yes
+  tags:
+    - apache_config
+    - apache_vhosts
 
 - name: "configure : provide apps readme"
   ansible.builtin.copy:
@@ -209,6 +250,9 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0444
   become: yes
+  tags:
+    - apache_config
+    - apache_vhosts
 
 
 
@@ -228,6 +272,8 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify: restart Apache
+  tags:
+    - apache_config
 
 - name: "configure : enable needed modules"
   community.general.apache2_module:
@@ -242,6 +288,8 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify: restart Apache
+  tags:
+    - apache_config
 
 
 
@@ -258,6 +306,8 @@
     mode: 0664
   register: _apache_conf_updated
   become: yes
+  tags:
+    - apache_config
 
 - name: "configure : restart Apache"
   ansible.builtin.service:
@@ -266,6 +316,8 @@
     enabled: true
   become: yes
   when: _apache_conf_updated is changed
+  tags:
+    - apache_config
 
 
 
@@ -289,11 +341,15 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify: restart Apache
+  tags:
+    - apache_config
 
 - name: "configure : check for config directory"
   ansible.builtin.stat:
     path: "/etc/{{ apache_daemon }}/conf.d"
   register: _confd_path
+  tags:
+    - apache_config
 
 - name: "configure : remove conf.d configuration files"
   ansible.builtin.file:
@@ -308,6 +364,8 @@
   become: yes
   when: confd_path.stat.isdir is defined and confd_path.stat.isdir == true
   notify: restart Apache
+  tags:
+    - apache_config
 
 - name: "configure : disable sub-configuration files (Debian)"
   ansible.builtin.shell:
@@ -325,6 +383,8 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify: restart Apache
+  tags:
+    - apache_config
 
 
 
@@ -342,6 +402,9 @@
     - default-ssl.conf
   become: yes
   when: ansible_os_family == "Debian"
+  tags:
+    - apache_config
+    - apache_vhosts
 
 - name: "configure : delete default virtual hosts (Debian)"
   ansible.builtin.file:
@@ -354,6 +417,9 @@
     - default-ssl.conf
   become: yes
   when: ansible_os_family == "Debian"
+  tags:
+    - apache_config
+    - apache_vhosts
 
 
 
@@ -372,4 +438,6 @@
     - error.log
     - other_vhosts_access.log
   become: yes
+  tags:
+    - apache_config
 

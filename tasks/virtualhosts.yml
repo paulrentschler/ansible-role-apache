@@ -19,6 +19,8 @@
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "item.docroot|default('yes')|bool"
+  tags:
+    - apache_vhosts
 
 - name: "Virtual host : docroot : create the document root"
   ansible.builtin.file:
@@ -32,6 +34,8 @@
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "item.docroot|default('yes')|bool"
+  tags:
+    - apache_vhosts
 
 
 
@@ -51,6 +55,8 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
+  tags:
+    - apache_vhosts
 
 - name: "Virtual host : logs : configure log file rotation"
   ansible.builtin.template:
@@ -65,6 +71,8 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
+  tags:
+    - apache_vhosts
 
 
 
@@ -83,6 +91,8 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
+  tags:
+    - apache_vhosts
 
 
 
@@ -101,6 +111,8 @@
   loop: "{{ apache_vhosts }}"
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
+  tags:
+    - apache_vhosts
 
 
 
@@ -241,6 +253,7 @@
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   tags:
     - apache_update_certs
+    - apache_vhosts
 
 - name: "Virtual host : vhost : enable the virtual host"
   ansible.builtin.file:
@@ -257,6 +270,8 @@
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "item.enable|default('yes')|bool"
+  tags:
+    - apache_vhosts
 
 
 
@@ -274,6 +289,8 @@
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "ansible_os_family == 'Debian' and (item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != '')"
+  tags:
+    - apache_vhosts
 
 - name: "Virtual host : proxy : enable proxy_http module (Debian)"
   community.general.apache2_module:
@@ -285,6 +302,8 @@
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "ansible_os_family == 'Debian' and (item.proxy_origins|default([])|length == 1 or item.plone_site|default('') != '')"
+  tags:
+    - apache_vhosts
 
 - name: "Virtual host : proxy : enable proxy_balancer module (Debian)"
   community.general.apache2_module:
@@ -296,6 +315,8 @@
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "ansible_os_family == 'Debian' and item.proxy_origins|default([])|length > 1"
+  tags:
+    - apache_vhosts
 
 - name: "Virtual host : proxy : enable lbmethod_byrequests module (Debian)"
   community.general.apache2_module:
@@ -307,4 +328,6 @@
   loop_control:
     label: "{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}"
   when: "ansible_os_family == 'Debian' and item.proxy_origins|default([])|length > 1"
+  tags:
+    - apache_vhosts
 

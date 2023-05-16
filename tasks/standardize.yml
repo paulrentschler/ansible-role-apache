@@ -16,6 +16,8 @@
     state: "link"
   become: yes
   when: ansible_os_family == "RedHat"
+  tags:
+    - apache_standard
 
 - name: "standardize : symlink for enabled conf directory (RedHat)"
   ansible.builtin.file:
@@ -24,6 +26,8 @@
     state: "link"
   become: yes
   when: ansible_os_family == "RedHat"
+  tags:
+    - apache_standard
 
 
 
@@ -39,6 +43,8 @@
     state: "link"
   become: yes
   when: ansible_os_family == "RedHat"
+  tags:
+    - apache_standard
 
 - name: "standardize : create symlink to logs (Debian)"
   ansible.builtin.file:
@@ -47,6 +53,8 @@
     state: "link"
   become: yes
   when: ansible_os_family == "Debian"
+  tags:
+    - apache_standard
 
 
 
@@ -63,6 +71,8 @@
     state: "link"
   become: yes
   when: ansible_os_family == "RedHat"
+  tags:
+    - apache_standard
 
 - name: "standardize : get the the group module files (RedHat)"
   ansible.builtin.find:
@@ -73,6 +83,8 @@
   register: __apache_module_conf_files
   become: yes
   when: ansible_os_family == "RedHat"
+  tags:
+    - apache_standard
 
 - name: "standardize : disable unneed modules (RedHat)"
   include_tasks: toggle-modules.yml
@@ -83,6 +95,8 @@
     label: "{{ files_item.path.split('/')[-1] }}"
     loop_var: files_item
   when: ansible_os_family == "RedHat"
+  tags:
+    - apache_standard
 
 
 

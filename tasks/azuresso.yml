@@ -14,21 +14,37 @@
   ansible.builtin.fail:
     msg: "Must specify the OpenID Connect provider url with 'apache_azuresso_provider_url'"
   when: not apache_azuresso_provider_url
+  tags:
+    - apache_config
+    - apache_config_azuresso
+    - apache_modules
 
 - name: "AzureSSO : verify app id specified"
   ansible.builtin.fail:
     msg: "Must specify the app id with 'apache_azuresso_app_id'"
   when: not apache_azuresso_app_id
+  tags:
+    - apache_config
+    - apache_config_azuresso
+    - apache_modules
 
 - name: "AzureSSO : verify client secret specified"
   ansible.builtin.fail:
     msg: "Must specify the client secret with 'apache_azuresso_client_secret'"
   when: not apache_azuresso_client_secret
+  tags:
+    - apache_config
+    - apache_config_azuresso
+    - apache_modules
 
 - name: "AzureSSO : verify passphrase specified"
   ansible.builtin.fail:
     msg: "Must specify the passphrase with 'apache_azuresso_passphrase'"
   when: not apache_azuresso_passphrase
+  tags:
+    - apache_config
+    - apache_config_azuresso
+    - apache_modules
 
 
 
@@ -43,12 +59,16 @@
     group: "{{ devops_group|default('adm') }}"
     mode: 0775
   become: yes
+  tags:
+    - apache_modules
 
 - name: "AzureSSO : check for module installation (Debian)"
   ansible.builtin.stat:
     path: "/usr/lib/apache2/modules/mod_auth_openidc.so"
   register: _apache_azuresso_installed
   when: ansible_os_family == "Debian"
+  tags:
+    - apache_modules
 
 - name: "AzureSSO : download the DEB package (Debian)"
   ansible.builtin.get_url:
@@ -56,12 +76,16 @@
     dest: /usr/local/src/
     mode: 0660
   when: ansible_os_family == "Debian" and not _apache_azuresso_installed.stat.exists
+  tags:
+    - apache_modules
 
 - name: "AzureSSO : install the DEB package (Debian)"
   ansible.builtin.apt:
     deb: "/usr/local/src/libapache2-mod-auth-openidc_{{ apache_azuresso_openidc_version }}-1.{{ ansible_distribution_release }}+1_amd64.deb"
   become: yes
   when: ansible_os_family == "Debian" and not _apache_azuresso_installed.stat.exists
+  tags:
+    - apache_modules
 
 - name: "AzureSSO : install the RPM packages (RedHat)"
   ansible.builtin.dnf:
@@ -72,6 +96,8 @@
     - "https://github.com/zmartzone/mod_auth_openidc/releases/download/v2.4.0/cjose-0.6.1.5-2.el7.x86_64.rpm"
     - "https://github.com/zmartzone/mod_auth_openidc/releases/download/v2.4.11.3/mod_auth_openidc-2.4.11.3-1.el7.x86_64.rpm"
   when: ansible_os_family == "RedHat"
+  tags:
+    - apache_modules
 
 
 
@@ -86,6 +112,8 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify: restart Apache
+  tags:
+    - apache_modules
 
 - name: "AzureSSO : add the OpenID configuration"
   ansible.builtin.template:
@@ -95,6 +123,10 @@
     group: "{{ apache_group }}"
     mode: 0440
   become: yes
+  tags:
+    - apache_config
+    - apache_config_azuresso
+    - apache_modules
 
 - name: "AzureSSO : enable the OpenID configuration (Debian)"
   ansible.builtin.file:
@@ -104,4 +136,6 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify: restart Apache
+  tags:
+    - apache_modules
 

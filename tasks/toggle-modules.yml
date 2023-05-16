@@ -70,6 +70,8 @@
     label: "{{ filename.path.split('/')[-1] }}: {{ item }}"
   become: yes
   when: ansible_os_family == 'RedHat'
+  tags:
+    - apache_standard
 
 
 - name: "toggle-modules : enable need modules (RedHat)"
@@ -123,3 +125,5 @@
     label: "{{ filename.path.split('/')[-1] }}: {{ item }}"
   become: yes
   when: ansible_os_family == 'RedHat'
+  tags:
+    - apache_standard

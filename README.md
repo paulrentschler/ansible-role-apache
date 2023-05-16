@@ -21,6 +21,29 @@ The following variables are available with defaults defined in `defaults/main.ym
 
 
 
+Role Tags
+------------
+
+The following tags are used to limit the execution of various steps.
+
+`apache_config`: All configuration steps
+
+`apache_config_azuresso`: Configuration steps specific to the Azure SSO module
+
+`apache_cron`: Steps that setup cron jobs
+
+`apache_modules`: Steps that install, enable, disable, and configure modules (e.g., SSL, AzureSSO, UWSGI, WSGI, etc.)
+
+`apache_redirects`: Steps that define, update, enable, and disable redirects or redirect exclusions
+
+`apache_standard`: Steps that standardize the installation between Debian and RedHat
+
+`apache_update_certs`: Steps that update SSL certificates (manual and CertBot)
+
+`apache_vhosts`: Steps that install, enable, disable, and configure virtual hosts
+
+
+
 Dependencies
 ------------
 
