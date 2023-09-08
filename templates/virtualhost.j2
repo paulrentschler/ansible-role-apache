@@ -198,7 +198,17 @@
             <Location />
                 # Configure access restrictions
                 AuthType openid-connect
-                Require valid-user
+                <RequireAll>
+{% if item.hostname == "www" and not item.use_www|default('no')|bool %}
+                    <RequireAny>
+                        Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
+                        Require expr %{HTTP_HOST} == "{{ item.domain }}"
+                    </RequireAny>
+{% else %}
+                    Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
+{% endif %}
+                    Require valid-user
+                </RequireAll>
             </Location>
 
             <Location /valid>
@@ -223,7 +233,17 @@
             <Location />
                 # Configure access restrictions
                 AuthType Cosign
-                Require valid-user
+                <RequireAll>
+{% if item.hostname == "www" and not item.use_www|default('no')|bool %}
+                    <RequireAny>
+                        Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
+                        Require expr %{HTTP_HOST} == "{{ item.domain }}"
+                    </RequireAny>
+{% else %}
+                    Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
+{% endif %}
+                    Require valid-user
+                </RequireAll>
             </Location>
 
             <Location /cosign/valid>
@@ -236,6 +256,22 @@
                 AuthType none
                 Require all granted
             </Location>
+{% endif %}
+
+{% if not item.use_azuresso|default('no')|bool and not item.use_cosign|default('no')|bool%}
+        ###
+        # Restrict access to only this host name
+        ###
+        <Location />
+{% if item.hostname == "www" and not item.use_www|default('no')|bool %}
+            <RequireAny>
+                Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
+                Require expr %{HTTP_HOST} == "{{ item.domain }}"
+            </RequireAny>
+{% else %}
+            Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
+{% endif %}
+        </Location>
 {% endif %}
 
 
