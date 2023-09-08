@@ -207,6 +207,13 @@
 {% else %}
                     Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
 {% endif %}
+{% if item.ips_allowed|default([]) %}
+                    <RequireAny>
+{% for ip in item.ips_allowed %}
+                        Require ip {{ ip }}
+{% endfor %}
+                    </RequireAny>
+{% endif %}
                     Require valid-user
                 </RequireAll>
             </Location>
@@ -242,6 +249,13 @@
 {% else %}
                     Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
 {% endif %}
+{% if item.ips_allowed|default([]) %}
+                    <RequireAny>
+{% for ip in item.ips_allowed %}
+                        Require ip {{ ip }}
+{% endfor %}
+                    </RequireAny>
+{% endif %}
                     Require valid-user
                 </RequireAll>
             </Location>
@@ -263,14 +277,23 @@
         # Restrict access to only this host name
         ###
         <Location />
+            <RequireAll>
 {% if item.hostname == "www" and not item.use_www|default('no')|bool %}
-            <RequireAny>
-                Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
-                Require expr %{HTTP_HOST} == "{{ item.domain }}"
-            </RequireAny>
+                <RequireAny>
+                    Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
+                    Require expr %{HTTP_HOST} == "{{ item.domain }}"
+                </RequireAny>
 {% else %}
-            Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
+                Require expr %{HTTP_HOST} == "{{ item.hostname }}.{{ item.domain }}"
 {% endif %}
+{% if item.ips_allowed|default([]) %}
+                <RequireAny>
+{% for ip in item.ips_allowed %}
+                    Require ip {{ ip }}
+{% endfor %}
+                </RequireAny>
+{% endif %}
+            </RequireAll>
         </Location>
 {% endif %}
 

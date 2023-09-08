@@ -21,6 +21,7 @@ apache_admin_email: ""
 #     use_ssl: yes               (default: no)
 #     use_cosign: yes            (default: no)
 #     use_azuresso: no           (default: no)
+#     ips_allowed: []            (default: [])
 #     redirect2ssl: no           (default: no)
 #     redirect2site: ""          (optional)
 #     ssl_certbot: no            (default: no)
