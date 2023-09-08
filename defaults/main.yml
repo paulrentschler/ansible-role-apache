@@ -16,6 +16,7 @@ apache_admin_email: ""
 #     enable: yes                (default: yes)
 #     template: ""               (default: "virtualhost.j2")
 #     docroot: yes               (default: yes)
+#     loglevel: "warn"           (default: "warn")
 #     use_www: no                (default: no)
 #     use_ssl: yes               (default: no)
 #     use_cosign: yes            (default: no)
@@ -95,3 +96,10 @@ apache_cosign_tarball: cosign-3.2.0.tar.gz
 apache_cosign_name: cosign-3.2.0
 apache_cosign_module: "/usr/lib/apache2/modules/mod_cosign.so"
 
+
+
+##
+# Log level
+##
+
+apache_loglevel: "warn"

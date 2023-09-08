@@ -290,7 +290,7 @@
     ###
 
         # Normal logging
-        LogLevel warn
+        LogLevel {{ item.loglevel|default(apache_loglevel)|default('warn') }}
 
 {% if item.use_ssl|default('no')|bool and item.use_azuresso|default('no')|bool %}
         # Logging with AzureSSO

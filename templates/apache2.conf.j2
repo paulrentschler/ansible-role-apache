@@ -314,7 +314,7 @@ ErrorLog {{ apache_log_path }}/default/error.log
 # LogLevel: Control the number of messages logged to the error_log
 # Possible values: debug, info, notice, warn, error, crit, alert, emerg
 #
-LogLevel warn
+LogLevel {{ apache_loglevel|default('warn') }}
 
 #
 # Define some format nicknames for use with the CustomLog directive
