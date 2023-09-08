@@ -105,14 +105,23 @@
         # redirect the author pages and the join form to FSD
         RewriteRule ^/author/(.*)$              /{{ item.plone_fsd_path }}/$1      [R=permanent,NC,L]
         RewriteRule ^/join_form(.*)$            /{{ item.plone_fsd_path }}         [R=permanent,NC,L]
+{% else %}
+{% if item.plone_block_authors|default('yes')|bool %}
+        # block access to the author pages
+        RedirectMatch 403 ^/author/(.*)$
+{% endif %}
+{% if item.plone_block_joinform|default('yes')|bool %}
+        # block access to the join form
+        RedirectMatch 403 ^/join_form(.*)$
+{% endif %}
 {% endif %}
 
-        # disable the sendto_form
-        RewriteRule ^/(.*)/sendto_form(.*)$     /$1             [R=permanent,NC,L]
+        # block access the sendto_form action
+        RedirectMatch 403 ^/(.*)/sendto_form(.*)$
 
 {% if item.use_ssl|default('no')|bool %}
         # deny access to the ZMI
-        RewriteRule ^/(manage|manage_(.*)|(.*)/manage|(.*)/manage_(.*))   -         [L,NC]
+        RewriteRule ^/(manage|manage_(.*)|(.*)/manage|(.*)/manage_(.*))      -                           [L,NC]
         <LocationMatch "^/(manage|manage_(.*)|(.*)/manage|(.*)/manage_(.*))">
             Deny from all
         </LocationMatch>
@@ -122,7 +131,7 @@
 {% endif %}
 
         # prevent access to the Zope root page
-        RewriteRule ^/aq_(.*)                   /                  [R=permanent,L]
+        RewriteRule ^/aq_(.*)                                                /                           [R=permanent,L]
 
 
         ###

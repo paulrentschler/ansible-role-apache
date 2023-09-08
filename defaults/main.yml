@@ -30,6 +30,8 @@ apache_admin_email: ""
 #     ssl_intermediate_certs: []
 #     ssl_chain_cert: ""
 #     plone_site: Plone              (default: "")
+#     plone_block_authors: yes       (default: yes)
+#     plone_block_joinform: yes      (default: yes)
 #     plone_exclude_robotstxt: no    (default: no)
 #     plone_zope_port: 8080          (default: 8080)
 #     plone_fsd_path: people         (default: "")
