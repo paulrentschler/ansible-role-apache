@@ -17,6 +17,9 @@ apache_admin_email: ""
 #     template: ""                   (default: "virtualhost.j2")
 #     docroot: yes                   (default: yes)
 #     loglevel: "warn"               (default: "warn")
+#     error_docs:                    (default: {})
+#       "404": /404.html
+#       "500": /500.html
 #     use_www: no                    (default: no)
 #     use_ssl: yes                   (default: no)
 #     use_azuresso: no               (default: no)

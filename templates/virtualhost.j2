@@ -31,6 +31,27 @@
     </IfModule>
 
 
+{% if item.error_docs|default({}) %}
+    ###
+    # Custom error documents
+    ###
+
+{% for code in item.error_docs %}
+        ErrorDocument {{ code }} {{ item.error_docs[code] }}
+{% endfor %}
+
+{% if item.docroot|default('yes')|bool %}
+        # prevent direct access to the custom error pages
+{% for code in item.error_docs %}
+        <Files "{{ item.error_docs[code] }}">
+            <If "-z %{ENV:REDIRECT_STATUS}">
+                RedirectMatch 404 ^{{ item.error_docs[code] }}$
+            </If>
+        </Files>
+{% endfor %}
+{% endif %}
+{% endif %}
+
 {% if item.use_ssl|default('no')|bool and item.use_azuresso|default('no')|bool %}
     ###
     # Configure AzureSSO
