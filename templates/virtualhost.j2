@@ -147,6 +147,9 @@
 {% if item.use_cosign|default('no')|bool %}
             RewriteCond %{REQUEST_URI}  !^/cosign/valid(.*)$
 {% endif %}
+{% if item.plone_exclude_robotstxt|default('no')|bool %}
+            RewriteCond %{REQUEST_URI}  !^robots.txt$
+{% endif %}
             IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/exclusions/plone-exclude_*.conf
 {% if item.plone_varnish_port|default('') %}
             RewriteRule ^/(.*)/$ http://127.0.0.1:{{ item.plone_varnish_port }}/VirtualHostBase/http/%{SERVER_NAME}:80/{{ item.plone_site }}/VirtualHostRoot/$1 [L,P{% if item.use_ssl|default('no')|bool %},E=remoteUser:%{LA-U:REMOTE_USER}{% endif %}]
@@ -159,6 +162,9 @@
 {% endif %}
 {% if item.use_cosign|default('no')|bool %}
             RewriteCond %{REQUEST_URI}  !^/cosign/valid(.*)$
+{% endif %}
+{% if item.plone_exclude_robotstxt|default('no')|bool %}
+            RewriteCond %{REQUEST_URI}  !^robots.txt$
 {% endif %}
             IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/exclusions/plone-exclude_*.conf
 {% if item.plone_varnish_port|default('') %}
@@ -227,6 +233,13 @@
                 AuthType none
                 Require all granted
             </Location>
+
+{% if item.use_robotstxt|default('no')|bool %}
+            <Location /robots.txt>
+                AuthType none
+                Require all granted
+            </Location>
+{% endif %}
 {% endif %}
 
 {% if item.use_ssl|default('no')|bool and item.use_cosign|default('no')|bool %}
@@ -270,6 +283,13 @@
                 AuthType none
                 Require all granted
             </Location>
+
+{% if item.use_robotstxt|default('no')|bool %}
+            <Location /robots.txt>
+                AuthType none
+                Require all granted
+            </Location>
+{% endif %}
 {% endif %}
 
 {% if not item.use_azuresso|default('no')|bool and not item.use_cosign|default('no')|bool%}
