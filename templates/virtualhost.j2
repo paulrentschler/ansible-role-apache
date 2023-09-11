@@ -98,12 +98,12 @@
 {% if not item.use_ssl|default('no')|bool and item.redirect2ssl|default('no')|bool %}
         # redirect all traffic to the SSL'ed site
         IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}/exclusions/rewrite2ssl-exclude_*.conf
-        RewriteRule ^(.*) https://{{ item.hostname }}.{{ item.domain }}/$1     [R=permanent,NC,L]
+        RewriteRule ^(.*) https://{{ item.hostname }}.{{ item.domain }}$1     [R=permanent,NC,L]
 
 {% elif item.redirect2site|default('') %}
         # redirect all traffic to another site
         IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/exclusions/redirect2other-exclude_*.conf
-        RewriteRule ^(.*)   {{ item.redirect2site }}/$1       [R=permanent,NC,L]
+        RewriteRule ^(.*)   {{ item.redirect2site }}$1       [R=permanent,NC,L]
 
 {% else %}
 {% if item.hostname == "www" and not item.use_www|default('no')|bool %}
