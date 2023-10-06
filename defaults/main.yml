@@ -4,6 +4,11 @@
 
 apache_admin_email: ""
 
+# Limit the size of the HTTP request header allowed from the client
+#   Apache default: 8190
+apache_request_field_size: 8190
+
+
 
 ##
 # Virtual hosts

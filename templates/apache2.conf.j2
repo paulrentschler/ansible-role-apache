@@ -12,6 +12,9 @@
 # The directives in this section affect the overall operation of Apache
 #
 
+# Set the limit on the size of the HTTP request header allowed from the client
+LimitRequestFieldSize {{ apache_request_field_size }}
+
 #
 # Don't give away too much information about all the subcomponents
 # we are running.
