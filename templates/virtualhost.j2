@@ -206,7 +206,7 @@
 {% endif %}
             IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}{% if item.use_ssl|default('no')|bool %}-ssl{% endif %}/exclusions/plone-exclude_*.conf
 {% if item.plone_varnish_port|default('') %}
-            RewriteRule ^/(.*)$ http://127.0.0.1:{{ item.plone_varnish_port }}/VirtualHostBase/http/%{SERVER_NAME}:80/{{ item.plone_site }}/VirtualHostRoot/$1 [L,P{% if item.use_ssl|default('no')|bool %},E=remoteUser:%{LA-U:REMOTE_USER}{% endif %}]
+            RewriteRule ^/(.*)$ http://127.0.0.1:{{ item.plone_varnish_port }}/VirtualHostBase/http{% if item.use_ssl|default('no')|bool %}s{% endif %}/%{SERVER_NAME}:{% if item.use_ssl|default('no')|bool %}443{% else %}80{% endif %}/{{ item.plone_site }}/VirtualHostRoot/$1 [L,P{% if item.use_ssl|default('no')|bool %},E=remoteUser:%{LA-U:REMOTE_USER}{% endif %}]
 {% else %}
             RewriteRule ^/(.*)$ http://127.0.0.1:{{ item.plone_zope_port|default('8080') }}/VirtualHostBase/http{% if item.use_ssl|default('no')|bool %}s{% endif %}/%{SERVER_NAME}:{% if item.use_ssl|default('no')|bool %}443{% else %}80{% endif %}/{{ item.plone_site }}/VirtualHostRoot/$1 [L,P{% if item.use_ssl|default('no')|bool %},E=remoteUser:%{LA-U:REMOTE_USER}{% endif %}]
 {% endif %}
