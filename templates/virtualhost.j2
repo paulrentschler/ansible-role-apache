@@ -102,7 +102,7 @@
 {% endif %}
         RewriteCond %{HTTP_HOST} {{ item.hostname }}.{{ item.domain }}
         IncludeOptional rewrites/{{ item.hostname }}.{{ item.domain }}/exclusions/rewrite2ssl-exclude_*.conf
-        RewriteRule ^(.*) https://{% if item.hostname == "www" and item.use_www|default('no')|bool %}{{ item.hostname }}.{% endif %}{{ item.domain }}$1     [R=permanent,NC,L]
+        RewriteRule ^(.*) https://{% if item.hostname != "www" or (item.hostname == "www" and item.use_www|default('no')|bool) %}{{ item.hostname }}.{% endif %}{{ item.domain }}$1     [R=permanent,NC,L]
 
 {% elif item.redirect2site|default('') %}
         # redirect all traffic to another site
